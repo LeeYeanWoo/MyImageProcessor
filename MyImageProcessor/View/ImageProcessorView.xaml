@@ -10,9 +10,9 @@
     <DockPanel>
         <ToolBarTray DockPanel.Dock="Top">
             <ToolBar>
-                <Button Content="새로고침"/>
-                <Button Content="열기"/>
-                <Button Content="저장"/>
+                <Button Content="새로고침" Click="ClearButtonClick"/>
+                <Button Content="열기" Click="ImageLoadButtonClick"/>
+                <Button Content="저장" Click="ImageSaveButtonClick"/>
             </ToolBar>
             <ToolBar>
                 <Button Content="팽창"/>
@@ -47,10 +47,25 @@
                         <RowDefinition Height="15*"/>
                     </Grid.RowDefinitions>
                     <Grid Grid.Row="0">
-                        <TextBox Text="이미지 소스" FontSize="20" TextAlignment="Center" Background="#FAFAFA"/>
+                        <TextBox Text="이미지 소스" FontSize="20" TextAlignment="Center" Background="#FAFAFA" VerticalContentAlignment="Center"/>
                     </Grid>
                     <Grid Grid.Row="1">
-
+                        <ScrollViewer HorizontalScrollBarVisibility="Visible">
+                            <Image Stretch="UniformToFill" Height="500" Width="570"
+                                   Source="{Binding SourceImage.Image}">
+                                <Image.LayoutTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform x:Name="sourceScaleTransform"/>
+                                    </TransformGroup>
+                                </Image.LayoutTransform>
+                            </Image>
+                        </ScrollViewer>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20">
+                            <Button Margin="3" Width="30" Height="30" Content="+"
+                                    Click="SourceScaleUpButtonClick"/>
+                            <Button Margin="3" Width="30" Height="30" Content="-"
+                                    Click="SourceScaleDownButtonClick"/>
+                        </StackPanel>
                     </Grid>
                 </Grid>
             </Border>
@@ -61,22 +76,59 @@
                     <RowDefinition Height="15*"/>
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
-                    <TextBox Text="영상 처리 결과" FontSize="20" TextAlignment="Center" Background="#FAFAFA"/>
+                    <TextBox Text="영상 처리 결과" FontSize="20" TextAlignment="Center" Background="#FAFAFA" VerticalContentAlignment="Center"/>
                 </Grid>
                 <Grid Grid.Row="1">
-
+                    <ScrollViewer HorizontalScrollBarVisibility="Visible">
+                        <Image Stretch="UniformToFill" Height="500" Width="570"
+                                   Source="{Binding TargetImage.Image}">
+                            <Image.LayoutTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="targetScaleTransform"/>
+                                </TransformGroup>
+                            </Image.LayoutTransform>
+                        </Image>
+                    </ScrollViewer>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20">
+                        <Button Margin="3" Width="30" Height="30" Content="+"
+                                Click="TargetScaleUpButtonClick"/>
+                        <Button Margin="3" Width="30" Height="30" Content="-"
+                                Click="TargetScaleDownButtonClick"/>
+                    </StackPanel>
                 </Grid>
             </Grid>
 
             <Grid Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2">
-                <ListView Name="logListView" FontSize="15">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="시간" Width="200"/>
-                            <GridViewColumn Header="내용" Width="1000"/>
-                        </GridView>
-                    </ListView.View>
-                </ListView>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0">
+                    <ListView Name="logListView" FontSize="15">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="시간" Width="200"/>
+                                <GridViewColumn Header="내용" Width="1000"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
+                <Grid Grid.Column="1">
+                    <Grid Grid.Column="0" Grid.Row="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="6*"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
+                            <TextBox Text="PreView" FontSize="15" TextAlignment="Center" Background="#FAFAFA" VerticalContentAlignment="Center"/>
+                        </Grid>
+                        <Grid Grid.Row="1">
+                            <Image Stretch="Uniform"
+                                   Source="{Binding PreViewImage.Image}"/>
+
+                        </Grid>
+                    </Grid>
+                </Grid>
             </Grid>
 
         </Grid>
