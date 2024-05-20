@@ -18,7 +18,7 @@
                 <Button Content="팽창"/>
                 <Button Content="수축"/>
                 <Button Content="평활화"/>
-                <Button Content="이진화"/>
+                <Button Content="이진화" Click="BinarizeButtonClick"/>
             </ToolBar>
             <ToolBar>
                 <Button Content="가우시안"/>

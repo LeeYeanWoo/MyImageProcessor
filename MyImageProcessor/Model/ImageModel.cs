@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,6 +32,7 @@ namespace MyImageProcessor.Model
             {
                 image = value;
                 OnPropertyChanged("Image");
+                GC.Collect();
             }
         }
 
@@ -61,7 +63,7 @@ namespace MyImageProcessor.Model
                     img.EndInit();
 
                     // Freeze 메서드를 호출하여 이미지 객체를 변경 불가능하게 생성
-                    //if (img.CanFreeze) img.Freeze();
+                    if (img.CanFreeze) img.Freeze();
 
                     Image = img;
                     ImagePath = strPath;

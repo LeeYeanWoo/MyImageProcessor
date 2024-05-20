@@ -1,50 +1,40 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
+﻿using CLRImageProcessing;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using MyImageProcessor.Model;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using ImageConverter = MyImageProcessor.Model.ImageConverter;
 
 namespace MyImageProcessor.ViewModel
 {
     class ImageProcessorViewModel
     {
-        ImageModel sourceImage;
-        ImageModel targetImage;
-        ImageModel preViewImage;
+        private ImageProcessing imageProcessing;
 
-        public ImageModel SourceImage
-        {
-            get { return sourceImage; }
-            set { sourceImage = value; }
-        }
+        public ImageModel SourceImage { get; set; }
 
-        public ImageModel TargetImage
-        {
-            get { return targetImage; }
-            set { targetImage = value; }
-        }
+        public ImageModel TargetImage { get; set; }
 
-        public ImageModel PreViewImage
-        {
-            get { return preViewImage; }
-            set { preViewImage = value; }
-        }
+        public ImageModel PreViewImage { get; set; }
 
         public ImageProcessorViewModel()
         {
-            sourceImage = new();
-            targetImage = new();
-            preViewImage = new();
+            SourceImage = new();
+            TargetImage = new();
+            PreViewImage = new();
+            imageProcessing = new();
         }
 
         public void ClearData()
         {
-            sourceImage.ImageLoad(@"..\..\Image\emptyImage.jpg");
-            targetImage.ImageLoad(@"..\..\Image\emptyImage.jpg");
-            preViewImage.ImageLoad(@"..\..\Image\emptyImage.jpg");
+            SourceImage.ImageLoad(@"..\..\Image\emptyImage.jpg");
+            TargetImage.ImageLoad(@"..\..\Image\emptyImage.jpg");
+            PreViewImage.ImageLoad(@"..\..\Image\emptyImage.jpg");
         }
 
         public void SourceImageLoad()
@@ -54,8 +44,8 @@ namespace MyImageProcessor.ViewModel
 
             if (dlgOpenFile.ShowDialog().ToString() == "OK")
             {
-                sourceImage.ImageLoad(dlgOpenFile.FileName);
-                preViewImage.ImageLoad(dlgOpenFile.FileName);
+                SourceImage.ImageLoad(dlgOpenFile.FileName);
+                PreViewImage.ImageLoad(dlgOpenFile.FileName);
             }
         }
         public void TargetImageSave()
@@ -64,8 +54,18 @@ namespace MyImageProcessor.ViewModel
 
             if (dlgOpenFile.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                targetImage.ImageSave(dlgOpenFile.FileName);
+                TargetImage.ImageSave(dlgOpenFile.FileName);
             }
+        }
+
+        public void Binarization(int threshold)
+        {
+            Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            Bitmap resultBitmap = imageProcessing.Binarize(sourceBitmap, threshold);
+            TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+
+            sourceBitmap.Dispose();
+            resultBitmap.Dispose();
         }
     }
 }

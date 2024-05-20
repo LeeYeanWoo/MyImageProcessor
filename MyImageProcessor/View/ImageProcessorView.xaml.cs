@@ -1,4 +1,5 @@
-﻿using MyImageProcessor.ViewModel;
+﻿using MyImageProcessor.View;
+using MyImageProcessor.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,6 +73,20 @@ namespace MyImageProcessor
             targetScaleTransform.ScaleX = 1.0;
             targetScaleTransform.ScaleY = 1.0;
             viewModel.ClearData();
+        }
+
+        private void BinarizeButtonClick(object sender, RoutedEventArgs e)
+        {
+            ThresholdPopup thresholdPopup = new();
+            thresholdPopup.DataSendEvent += new DataGetEventHandler(this.ThresholdDataGet);
+            thresholdPopup.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            thresholdPopup.ShowDialog();
+        }
+
+        private void ThresholdDataGet(string data)
+        {
+            int threshold = int.Parse(data);
+            viewModel.Binarization(threshold);
         }
     }
 }
