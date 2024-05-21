@@ -1,6 +1,8 @@
 #include "pch.h"
 
 #include "CLRImageProcessing.h"
+#include <intrin.h>
+#include "SSEImageProcessing.h"
 using namespace CLRImageProcessing;
 
 Bitmap^ CLRImageProcessing::ImageProcessing::Binarize(Bitmap^ sourceBitmap, int threshold)
@@ -21,18 +23,13 @@ Bitmap^ CLRImageProcessing::ImageProcessing::Binarize(Bitmap^ sourceBitmap, int 
 	ColorPalette^ palette = sourceBitmap->Palette;
 	for (int i = 0; i < 256; i++)
 		palette->Entries[i] = Color::FromArgb(i, i, i);
+
 	sourceBitmap->Palette = palette;
 	targetBitmap->Palette = palette;
 
 	//이미지 처리 시작
-	for (int y = 0; y < sourceBitmap->Height; y++)
-	{
-		for (int x = 0; x < sourceBitmap->Width; x++)
-		{
-			tPtr[0] = (byte)230;
-			tPtr += 1;
-		}
-	}
+	SSEBinarize(sPtr, tPtr, sourceBitmap->Width, sourceBitmap->Height, threshold);
+
 	//이미지 처리 끝
 	sourceBitmap->UnlockBits(sourceBitmapData);
 
@@ -40,3 +37,4 @@ Bitmap^ CLRImageProcessing::ImageProcessing::Binarize(Bitmap^ sourceBitmap, int 
 
 	return targetBitmap;
 }
+
