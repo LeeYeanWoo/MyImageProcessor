@@ -70,9 +70,19 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Model\ImageConverter.cs" />
+    <Compile Include="View\DilationPopup.xaml.cs">
+      <DependentUpon>DilationPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\ErosionPopup.xaml.cs">
+      <DependentUpon>ErosionPopup.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\ThresholdPopup.xaml.cs">
       <DependentUpon>ThresholdPopup.xaml</DependentUpon>
     </Compile>
+    <Page Include="View\DilationPopup.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\ImageProcessorView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -87,6 +97,10 @@
       <DependentUpon>ImageProcessorView.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="View\ErosionPopup.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\ThresholdPopup.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

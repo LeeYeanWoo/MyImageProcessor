@@ -67,5 +67,25 @@ namespace MyImageProcessor.ViewModel
             sourceBitmap.Dispose();
             resultBitmap.Dispose();
         }
+
+        public void Erosion(int threshold, int kernelX, int kernelY)
+        {
+            Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            Bitmap resultBitmap = imageProcessing.Erosion(sourceBitmap, threshold, kernelX, kernelY);
+            TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+
+            sourceBitmap.Dispose();
+            resultBitmap.Dispose();
+        }
+
+        public void Dilation(int threshold, int kernelX, int kernelY)
+        {
+            Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            Bitmap resultBitmap = imageProcessing.Dilation(sourceBitmap, threshold, kernelX, kernelY);
+            TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+
+            sourceBitmap.Dispose();
+            resultBitmap.Dispose();
+        }
     }
 }

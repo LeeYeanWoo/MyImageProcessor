@@ -15,8 +15,8 @@
                 <Button Content="저장" Click="ImageSaveButtonClick"/>
             </ToolBar>
             <ToolBar>
-                <Button Content="팽창"/>
-                <Button Content="수축"/>
+                <Button Content="팽창" Click="DilationButtonClick"/>
+                <Button Content="침식" Click="ErosionButtonClick"/>
                 <Button Content="평활화"/>
                 <Button Content="이진화" Click="BinarizeButtonClick"/>
             </ToolBar>

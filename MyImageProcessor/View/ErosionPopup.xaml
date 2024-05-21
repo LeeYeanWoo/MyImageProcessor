@@ -1,0 +1,26 @@
+﻿<Window x:Class="MyImageProcessor.View.ErosionPopup"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MyImageProcessor.View"
+        mc:Ignorable="d"
+        Title="ErosionPopup" Height="200" Width="400">
+    <Grid>
+        <StackPanel Margin="10">
+            <Label Content="임계값을 입력하세요.(0~255)"/>
+            <WrapPanel>
+                <Label Content="Threshold "/>
+                <TextBox Name="ThresholdTextBox" Width="200"/>
+            </WrapPanel>
+            <Label Content="연산에 사용할 커널의 크기를 입력하세요.(2~50)"/>
+            <WrapPanel>
+                <Label Content="Kernel(Mask) "/>
+                <TextBox Name="KernelXTextBox" Width="90"/>
+                <Label Content=" X "/>
+                <TextBox Name="KernelYTextBox" Width="90"/>
+            </WrapPanel>
+            <Button Content="입력" Width="50" Click="DataSendButtonClick" Margin="10"/>
+        </StackPanel>
+    </Grid>
+</Window>

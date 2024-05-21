@@ -88,5 +88,39 @@ namespace MyImageProcessor
             int threshold = int.Parse(data);
             viewModel.Binarization(threshold);
         }
+
+        private void ErosionButtonClick(object sender, RoutedEventArgs e)
+        {
+            ErosionPopup erosionPopup = new();
+            erosionPopup.DataSendEvent += new DataGetEventHandler(this.ErosionDataGet);
+            erosionPopup.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            erosionPopup.ShowDialog();
+        }
+
+        private void ErosionDataGet(string data)
+        {
+            string[]dataArr = data.Split(',');
+            int threshold = int.Parse(dataArr[0]);
+            int kernelX = int.Parse(dataArr[1]);
+            int kernelY = int.Parse(dataArr[2]);
+            viewModel.Erosion(threshold, kernelX, kernelY);
+        }
+
+        private void DilationButtonClick(object sender, RoutedEventArgs e)
+        {
+            DilationPopup dilationPopup = new();
+            dilationPopup.DataSendEvent += new DataGetEventHandler(this.DilationDataGet);
+            dilationPopup.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            dilationPopup.ShowDialog();
+        }
+
+        private void DilationDataGet(string data)
+        {
+            string[] dataArr = data.Split(',');
+            int threshold = int.Parse(dataArr[0]);
+            int kernelX = int.Parse(dataArr[1]);
+            int kernelY = int.Parse(dataArr[2]);
+            viewModel.Dilation(threshold, kernelX, kernelY);
+        }
     }
 }

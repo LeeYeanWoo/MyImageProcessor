@@ -3,4 +3,8 @@
 
 void SSEBinarize(uint8_t* src, uint8_t* des, int width, int height, int threshold);
 
+void SSEErosion(uint8_t* src, uint8_t* des, int width, int height, int threshold, int kernelX, int kernelY);
+
+void SSEDilation(uint8_t* src, uint8_t* des, int width, int height, int threshold, int kernelX, int kernelY);
+
 
