@@ -87,5 +87,15 @@ namespace MyImageProcessor.ViewModel
             sourceBitmap.Dispose();
             resultBitmap.Dispose();
         }
+
+        public void GaussianBlur(int sigma)
+        {
+            Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            Bitmap resultBitmap = imageProcessing.GaussianBlur(sourceBitmap, sigma);
+            TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+
+            sourceBitmap.Dispose();
+            resultBitmap.Dispose();
+        }
     }
 }

@@ -21,7 +21,7 @@
                 <Button Content="이진화" Click="BinarizeButtonClick"/>
             </ToolBar>
             <ToolBar>
-                <Button Content="가우시안"/>
+                <Button Content="가우시안" Click="GaussianButtonClick"/>
                 <Button Content="라플라스"/>
                 <Button Content="소벨"/>
                 <Button Content="FFT"/>

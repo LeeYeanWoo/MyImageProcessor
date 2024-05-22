@@ -13,5 +13,6 @@ namespace CLRImageProcessing {
 		Bitmap^ Binarize(Bitmap^sourceBitmap , int threshold);
 		Bitmap^ Erosion(Bitmap^ sourceBitmap, int threshold, int kernelX, int kernelY);
 		Bitmap^ Dilation(Bitmap^ sourceBitmap, int threshold, int kernelX, int kernelY);
+		Bitmap^ GaussianBlur(Bitmap^ sourceBitmap, int sigma);
 	};
 }

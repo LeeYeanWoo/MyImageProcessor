@@ -7,4 +7,4 @@ void SSEErosion(uint8_t* src, uint8_t* des, int width, int height, int threshold
 
 void SSEDilation(uint8_t* src, uint8_t* des, int width, int height, int threshold, int kernelX, int kernelY);
 
-
+void SSEGaussianBlur(uint8_t* src, uint8_t* des, int width, int height, double* kernel);

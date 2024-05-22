@@ -122,5 +122,17 @@ namespace MyImageProcessor
             int kernelY = int.Parse(dataArr[2]);
             viewModel.Dilation(threshold, kernelX, kernelY);
         }
+        private void GaussianButtonClick(object sender, RoutedEventArgs e)
+        {
+            GaussianPopup gaussianPopup = new();
+            gaussianPopup.DataSendEvent += new DataGetEventHandler(this.GaussianDataGet);
+            gaussianPopup.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            gaussianPopup.ShowDialog();
+        }
+        private void GaussianDataGet(string data)
+        {
+            int sigma = int.Parse(data);
+            viewModel.GaussianBlur(sigma);
+        }
     }
 }
