@@ -140,11 +140,16 @@ void SSEGaussianBlur(uint8_t* src, uint8_t* des, int width, int height, double* 
             }
 
             // 결과를 uint8_t로 변환하여 목적지 이미지에 저장
-            __m128i intSumVal128 = _mm256_cvtpd_epi32(sumVal); // 부동 소수점 값을 32비트 정수로 변환
+            // 부동 소수점 값을 32비트 정수로 변환
+            __m128i intSumVal128 = _mm256_cvtpd_epi32(sumVal); 
+            // __m128i -> __m256i로 zero Expend 캐스팅
             __m256i intSumVal = _mm256_castsi128_si256(intSumVal128);
+            // 데이터를 32bit -> 16bit으로 변환하기위해 zero data와 패킹
             __m128i packedSumVal = _mm_packus_epi32(_mm256_extracti128_si256(intSumVal, 0), _mm256_extracti128_si256(intSumVal, 1));
+            // 데이터를 16bit -> 8bit으로 변환하고 상위데이터는 사용하지 않을 예정이므로 자기자신과 패킹
             packedSumVal = _mm_packus_epi16(packedSumVal, packedSumVal);
-            _mm_storel_epi64((__m128i*) & des[y * width + x], packedSumVal);
+            // 사용할 하위 32bit 저장
+            _mm_storeu_epi32((__m128i*) & des[y * width + x], packedSumVal);
         }
     }
 }
