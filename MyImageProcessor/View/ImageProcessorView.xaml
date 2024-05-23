@@ -17,13 +17,13 @@
             <ToolBar>
                 <Button Content="팽창" Click="DilationButtonClick"/>
                 <Button Content="침식" Click="ErosionButtonClick"/>
-                <Button Content="평활화"/>
+                <Button Content="평활화" Click="EqualizationButtonClick"/>
                 <Button Content="이진화" Click="BinarizeButtonClick"/>
             </ToolBar>
             <ToolBar>
                 <Button Content="가우시안" Click="GaussianButtonClick"/>
                 <Button Content="라플라스"/>
-                <Button Content="소벨"/>
+                <Button Content="소벨" Click="SobelButtonClick"/>
                 <Button Content="FFT"/>
             </ToolBar>
             <ToolBar>
@@ -51,7 +51,7 @@
                     </Grid>
                     <Grid Grid.Row="1">
                         <ScrollViewer HorizontalScrollBarVisibility="Visible">
-                            <Image Stretch="UniformToFill" Height="500" Width="570"
+                            <Image Stretch="Uniform"
                                    Source="{Binding SourceImage.Image}">
                                 <Image.LayoutTransform>
                                     <TransformGroup>
@@ -80,7 +80,7 @@
                 </Grid>
                 <Grid Grid.Row="1">
                     <ScrollViewer HorizontalScrollBarVisibility="Visible">
-                        <Image Stretch="UniformToFill" Height="500" Width="570"
+                        <Image Stretch="Uniform"
                                    Source="{Binding TargetImage.Image}">
                             <Image.LayoutTransform>
                                 <TransformGroup>

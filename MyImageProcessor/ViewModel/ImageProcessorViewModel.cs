@@ -97,5 +97,25 @@ namespace MyImageProcessor.ViewModel
             sourceBitmap.Dispose();
             resultBitmap.Dispose();
         }
+
+        public void Equalization()
+        {
+            Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            Bitmap resultBitmap = imageProcessing.Equalization(sourceBitmap);
+            TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+
+            sourceBitmap.Dispose();
+            resultBitmap.Dispose();
+        }
+
+        public void Sobel()
+        {
+            Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            Bitmap resultBitmap = imageProcessing.Sobel(sourceBitmap);
+            TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+
+            sourceBitmap.Dispose();
+            resultBitmap.Dispose();
+        }
     }
 }

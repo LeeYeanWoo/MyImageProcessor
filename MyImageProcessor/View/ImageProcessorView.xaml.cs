@@ -87,6 +87,8 @@ namespace MyImageProcessor
         {
             int threshold = int.Parse(data);
             viewModel.Binarization(threshold);
+            targetScaleTransform.ScaleX = 1.0;
+            targetScaleTransform.ScaleY = 1.0;
         }
 
         private void ErosionButtonClick(object sender, RoutedEventArgs e)
@@ -104,6 +106,8 @@ namespace MyImageProcessor
             int kernelX = int.Parse(dataArr[1]);
             int kernelY = int.Parse(dataArr[2]);
             viewModel.Erosion(threshold, kernelX, kernelY);
+            targetScaleTransform.ScaleX = 1.0;
+            targetScaleTransform.ScaleY = 1.0;
         }
 
         private void DilationButtonClick(object sender, RoutedEventArgs e)
@@ -121,6 +125,8 @@ namespace MyImageProcessor
             int kernelX = int.Parse(dataArr[1]);
             int kernelY = int.Parse(dataArr[2]);
             viewModel.Dilation(threshold, kernelX, kernelY);
+            targetScaleTransform.ScaleX = 1.0;
+            targetScaleTransform.ScaleY = 1.0;
         }
         private void GaussianButtonClick(object sender, RoutedEventArgs e)
         {
@@ -133,6 +139,22 @@ namespace MyImageProcessor
         {
             int sigma = int.Parse(data);
             viewModel.GaussianBlur(sigma);
+            targetScaleTransform.ScaleX = 1.0;
+            targetScaleTransform.ScaleY = 1.0;
+        }
+
+        private void EqualizationButtonClick(object sender, RoutedEventArgs e)
+        {
+            viewModel.Equalization();
+            targetScaleTransform.ScaleX = 1.0;
+            targetScaleTransform.ScaleY = 1.0;
+        }
+
+        private void SobelButtonClick(object sender, RoutedEventArgs e)
+        {
+            viewModel.Sobel();
+            targetScaleTransform.ScaleX = 1.0;
+            targetScaleTransform.ScaleY = 1.0;
         }
     }
 }

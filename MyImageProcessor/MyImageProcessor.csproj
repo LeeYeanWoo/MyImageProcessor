@@ -35,11 +35,12 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CLRImageProcessing, Version=1.0.8906.28622, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="CLRImageProcessing, Version=1.0.8909.29251, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\x64\Debug\CLRImageProcessing.dll</HintPath>
+      <HintPath>..\x64\Release\CLRImageProcessing.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack">
       <HintPath>lib\Microsoft.WindowsAPICodePack.dll</HintPath>
