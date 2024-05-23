@@ -22,7 +22,7 @@
             </ToolBar>
             <ToolBar>
                 <Button Content="가우시안" Click="GaussianButtonClick"/>
-                <Button Content="라플라스"/>
+                <Button Content="라플라시안" Click="LaplacianButtonClick"/>
                 <Button Content="소벨" Click="SobelButtonClick"/>
                 <Button Content="FFT"/>
             </ToolBar>

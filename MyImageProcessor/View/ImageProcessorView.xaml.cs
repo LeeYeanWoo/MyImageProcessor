@@ -156,5 +156,12 @@ namespace MyImageProcessor
             targetScaleTransform.ScaleX = 1.0;
             targetScaleTransform.ScaleY = 1.0;
         }
+
+        private void LaplacianButtonClick(object sender, RoutedEventArgs e)
+        {
+            viewModel.Laplacian();
+            targetScaleTransform.ScaleX = 1.0;
+            targetScaleTransform.ScaleY = 1.0;
+        }
     }
 }

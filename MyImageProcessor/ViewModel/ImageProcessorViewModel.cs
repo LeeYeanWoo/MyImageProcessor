@@ -117,5 +117,15 @@ namespace MyImageProcessor.ViewModel
             sourceBitmap.Dispose();
             resultBitmap.Dispose();
         }
+
+        public void Laplacian()
+        {
+            Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            Bitmap resultBitmap = imageProcessing.Laplacian(sourceBitmap);
+            TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+
+            sourceBitmap.Dispose();
+            resultBitmap.Dispose();
+        }
     }
 }

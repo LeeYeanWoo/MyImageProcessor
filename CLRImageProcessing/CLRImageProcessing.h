@@ -16,5 +16,6 @@ namespace CLRImageProcessing {
 		Bitmap^ GaussianBlur(Bitmap^ sourceBitmap, int sigma);
 		Bitmap^ Equalization(Bitmap^ sourceBitmap);
 		Bitmap^ Sobel(Bitmap^ sourceBitmap);
+		Bitmap^ Laplacian(Bitmap^ sourceBitmap);
 	};
 }

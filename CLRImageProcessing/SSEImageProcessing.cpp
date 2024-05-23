@@ -244,6 +244,68 @@ void SSESobel(uint8_t* src, uint8_t* des, int width, int height)
             }
             // X 미분결과와 Y미분 결과를 합침
             sumVal_Result = _mm256_add_pd(sumVal_X, sumVal_Y);
+            // 결과를 uint8_t로 변환하여 목적지 이미지에 저장
+            // 부동 소수점 값을 32비트 정수로 변환
+            __m128i intSumVal128 = _mm256_cvtpd_epi32(sumVal_Result);
+            // 합친 결과를 절대값 변환
+            intSumVal128 = _mm_abs_epi32(intSumVal128);
+            // __m128i -> __m256i로 zero Expend 캐스팅
+            __m256i intSumVal = _mm256_castsi128_si256(intSumVal128);
+            // 데이터를 32bit -> 16bit으로 변환하기위해 zero data와 패킹
+            __m128i packedSumVal = _mm_packus_epi32(_mm256_extracti128_si256(intSumVal, 0), _mm256_extracti128_si256(intSumVal, 1));
+            // 데이터를 16bit -> 8bit으로 변환하고 상위데이터는 사용하지 않을 예정이므로 자기자신과 패킹
+            packedSumVal = _mm_packus_epi16(packedSumVal, packedSumVal);
+            // 사용할 하위 32bit 저장
+            _mm_storeu_si32((__m128i*) & des[y * width + x], packedSumVal);
+        }
+    }
+}
+
+void SSELaplacian(uint8_t* src, uint8_t* des, int width, int height)
+{
+	// 라플라시안 필터
+	double laplacianFilter[3][3] =
+	{
+		{1,1,1},
+		{1,-8,1},
+		{1,1,1}
+	};
+    int filterWidth = 3;
+
+    int halfKernelX = filterWidth / 2;
+    int halfKernelY = filterWidth / 2;
+
+    // 전체 픽셀 순회
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width - 4; x += 4) { // 4개의 픽셀을 한 번에 처리
+            // 커널의 값과 인접 픽셀 값을 곱한 값을 저장할 벡터
+            __m256d sumVal_Result = _mm256_setzero_pd();
+
+            for (int ky = -halfKernelY; ky <= halfKernelY; ky++) {
+                for (int kx = -halfKernelX; kx <= halfKernelX; kx++) {
+                    int ny = y + ky;
+                    int nx = x + kx;
+
+                    // 이미지 영역 안의 픽셀만 처리
+                    if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+                        // 현재 필터값 로드
+                        double FilterVal = laplacianFilter[ky + halfKernelY][kx + halfKernelX];
+
+                        // 4개 픽셀이 로드 
+                        __m128i pixel8 = _mm_loadu_si32(&src[ny * width + nx]);
+                        // 4개의 픽셀 데이터를 zeroExtend
+                        __m256i pixel32 = _mm256_cvtepu8_epi32(pixel8);
+                        // 상위 쓰레기 데이터를 버리고 계산해야할 픽셀 4개를 부동소수형식으로 변경
+                        __m256d pixel = _mm256_cvtepi32_pd(_mm256_castsi256_si128(pixel32));
+                        // 커널 값을 벡터화
+                        __m256d filterXVec = _mm256_set1_pd(FilterVal);
+                        // 곱셈 결과 계산(절대 오버플로우가 발생하지 않는단 확신이 있으므로 바로 계산)
+                        __m256d mulResultX = _mm256_mul_pd(pixel, filterXVec);
+                        // 누적합 계산
+                        sumVal_Result = _mm256_add_pd(sumVal_Result, mulResultX);
+                    }
+                }
+            }
 
             // 결과를 uint8_t로 변환하여 목적지 이미지에 저장
             // 부동 소수점 값을 32비트 정수로 변환
