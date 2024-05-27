@@ -11,6 +11,19 @@ __m256i _mm256_cmpgt_epu8(__m256i a, __m256i b)
     __m256i subSign_b = _mm256_sub_epi8(b, sign);
     return _mm256_cmpgt_epi8(subSign_a, subSign_b);
 }
+int _mm256_sum_epi32(__m256i a) {
+    int sumResult = 0;
+    sumResult += _mm256_extract_epi32(a, 0);
+    sumResult += _mm256_extract_epi32(a, 1);
+    sumResult += _mm256_extract_epi32(a, 2);
+    sumResult += _mm256_extract_epi32(a, 3);
+    sumResult += _mm256_extract_epi32(a, 4);
+    sumResult += _mm256_extract_epi32(a, 5);
+    sumResult += _mm256_extract_epi32(a, 6);
+    sumResult += _mm256_extract_epi32(a, 7);
+
+    return sumResult;
+}
 
 void SSEBinarize(uint8_t* src, uint8_t* des, int width, int height, int threshold)
 {
@@ -208,11 +221,11 @@ void SSESobel(uint8_t* src, uint8_t* des, int width, int height)
 
     // 전체 픽셀 순회
     for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width - 4; x += 4) { // 4개의 픽셀을 한 번에 처리
+        for (int x = 0; x < width - 16; x += 16) { // 4개의 픽셀을 한 번에 처리
             // 커널의 값과 인접 픽셀 값을 곱한 값을 저장할 벡터
-            __m256d sumVal_X = _mm256_setzero_pd();
-            __m256d sumVal_Y = _mm256_setzero_pd();
-            __m256d sumVal_Result = _mm256_setzero_pd();
+            __m256i sumVal_X = _mm256_setzero_si256();
+            __m256i sumVal_Y = _mm256_setzero_si256();
+            __m256i sumVal_Result = _mm256_setzero_si256();
             for (int ky = -halfKernelY; ky <= halfKernelY; ky++) {
                 for (int kx = -halfKernelX; kx <= halfKernelX; kx++) {
                     int ny = y + ky;
@@ -221,42 +234,37 @@ void SSESobel(uint8_t* src, uint8_t* des, int width, int height)
                     // 이미지 영역 안의 픽셀만 처리
                     if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
                         // 현재 필터값 로드
-                        double FilterVal_X = sobelXFilter[ky + halfKernelY][kx + halfKernelX];
-                        double FilterVal_Y = sobelYFilter[ky + halfKernelY][kx + halfKernelX];
+                        int FilterVal_X = sobelXFilter[ky + halfKernelY][kx + halfKernelX];
+                        int FilterVal_Y = sobelYFilter[ky + halfKernelY][kx + halfKernelX];
 
-                        // 4개 픽셀이 로드 
-                        __m128i pixel8 = _mm_loadu_si32(& src[ny * width + nx]);
-                        // 4개의 픽셀 데이터를 zeroExtend
-                        __m256i pixel32 = _mm256_cvtepu8_epi32(pixel8);
-                        // 상위 쓰레기 데이터를 버리고 계산해야할 픽셀 4개를 부동소수형식으로 변경
-                        __m256d pixel = _mm256_cvtepi32_pd(_mm256_castsi256_si128(pixel32));
+                        // 16개 픽셀이 로드 
+                        __m128i pixel16 = _mm_loadu_si128((__m128i*) & src[ny * width + nx]);
+                        // 16개의 픽셀 데이터를 zeroExtend
+                        __m256i pixel = _mm256_cvtepu8_epi16(pixel16);
                         // 커널 값을 벡터화
-                        __m256d filterXVec = _mm256_set1_pd(FilterVal_X);
-                        __m256d filterYVec = _mm256_set1_pd(FilterVal_Y);
+                        __m256i filterXVec = _mm256_set1_epi16(FilterVal_X);
+                        __m256i filterYVec = _mm256_set1_epi16(FilterVal_Y);
                         // 곱셈 결과 계산(절대 오버플로우가 발생하지 않는단 확신이 있으므로 바로 계산)
-                        __m256d mulResultX = _mm256_mul_pd(pixel, filterXVec);
-                        __m256d mulResultY = _mm256_mul_pd(pixel, filterYVec);
+                        __m256i mulResultX = _mm256_mullo_epi16(pixel, filterXVec);
+                        __m256i mulResultY = _mm256_mullo_epi16(pixel, filterYVec);
                         // 누적합 계산
-                        sumVal_X = _mm256_add_pd(sumVal_X, mulResultX);
-                        sumVal_Y = _mm256_add_pd(sumVal_Y, mulResultY);
+                        sumVal_X = _mm256_add_epi16(sumVal_X, mulResultX);
+                        sumVal_Y = _mm256_add_epi16(sumVal_Y, mulResultY);
                     }
                 }
             }
-            // X 미분결과와 Y미분 결과를 합침
-            sumVal_Result = _mm256_add_pd(sumVal_X, sumVal_Y);
-            // 결과를 uint8_t로 변환하여 목적지 이미지에 저장
-            // 부동 소수점 값을 32비트 정수로 변환
-            __m128i intSumVal128 = _mm256_cvtpd_epi32(sumVal_Result);
+            // 각 미분 결과를 합침
+            sumVal_Result = _mm256_add_epi16(sumVal_X, sumVal_Y);
             // 합친 결과를 절대값 변환
-            intSumVal128 = _mm_abs_epi32(intSumVal128);
-            // __m128i -> __m256i로 zero Expend 캐스팅
-            __m256i intSumVal = _mm256_castsi128_si256(intSumVal128);
-            // 데이터를 32bit -> 16bit으로 변환하기위해 zero data와 패킹
-            __m128i packedSumVal = _mm_packus_epi32(_mm256_extracti128_si256(intSumVal, 0), _mm256_extracti128_si256(intSumVal, 1));
-            // 데이터를 16bit -> 8bit으로 변환하고 상위데이터는 사용하지 않을 예정이므로 자기자신과 패킹
-            packedSumVal = _mm_packus_epi16(packedSumVal, packedSumVal);
-            // 사용할 하위 32bit 저장
-            _mm_storeu_si32((__m128i*) & des[y * width + x], packedSumVal);
+            sumVal_Result = _mm256_abs_epi16(sumVal_Result);
+            // 결과 값을 16 bit -> 8bit로 변환 빈공간은 0 Extend
+            __m256i packResult = _mm256_packus_epi16(sumVal_Result, _mm256_setzero_si256());
+            // 필요한 데이터 추출
+            __m128i resultData1 = _mm256_extracti128_si256(packResult, 0);
+            __m128i resultData2 = _mm256_extracti128_si256(packResult, 1);
+            // 사용할 하위 64bit를 나누어 저장
+            _mm_storeu_si64((__m128i*) & des[y * width + x], resultData1);
+            _mm_storeu_si64((__m128i*) & des[y * width + x + 8], resultData2);
         }
     }
 }
@@ -277,9 +285,9 @@ void SSELaplacian(uint8_t* src, uint8_t* des, int width, int height)
 
     // 전체 픽셀 순회
     for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width - 4; x += 4) { // 4개의 픽셀을 한 번에 처리
+        for (int x = 0; x < width - 16; x += 16) { // 4개의 픽셀을 한 번에 처리
             // 커널의 값과 인접 픽셀 값을 곱한 값을 저장할 벡터
-            __m256d sumVal_Result = _mm256_setzero_pd();
+            __m256i sumVal_Result = _mm256_setzero_si256();
 
             for (int ky = -halfKernelY; ky <= halfKernelY; ky++) {
                 for (int kx = -halfKernelX; kx <= halfKernelX; kx++) {
@@ -289,37 +297,84 @@ void SSELaplacian(uint8_t* src, uint8_t* des, int width, int height)
                     // 이미지 영역 안의 픽셀만 처리
                     if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
                         // 현재 필터값 로드
-                        double FilterVal = laplacianFilter[ky + halfKernelY][kx + halfKernelX];
+                        int FilterVal = laplacianFilter[ky + halfKernelY][kx + halfKernelX];
 
-                        // 4개 픽셀이 로드 
-                        __m128i pixel8 = _mm_loadu_si32(&src[ny * width + nx]);
-                        // 4개의 픽셀 데이터를 zeroExtend
-                        __m256i pixel32 = _mm256_cvtepu8_epi32(pixel8);
-                        // 상위 쓰레기 데이터를 버리고 계산해야할 픽셀 4개를 부동소수형식으로 변경
-                        __m256d pixel = _mm256_cvtepi32_pd(_mm256_castsi256_si128(pixel32));
+                        // 16개 픽셀이 로드 
+                        __m128i pixel16 = _mm_loadu_si128((__m128i*) & src[ny * width + nx]);
+                        // 16개의 픽셀 데이터를 zeroExtend
+                        __m256i pixel = _mm256_cvtepu8_epi16(pixel16);
                         // 커널 값을 벡터화
-                        __m256d filterXVec = _mm256_set1_pd(FilterVal);
+                        __m256i filterXVec = _mm256_set1_epi16(FilterVal);
                         // 곱셈 결과 계산(절대 오버플로우가 발생하지 않는단 확신이 있으므로 바로 계산)
-                        __m256d mulResultX = _mm256_mul_pd(pixel, filterXVec);
+                        __m256i mulResult = _mm256_mullo_epi16(pixel, filterXVec);
                         // 누적합 계산
-                        sumVal_Result = _mm256_add_pd(sumVal_Result, mulResultX);
+                        sumVal_Result = _mm256_add_epi16(sumVal_Result, mulResult);
                     }
                 }
             }
 
-            // 결과를 uint8_t로 변환하여 목적지 이미지에 저장
-            // 부동 소수점 값을 32비트 정수로 변환
-            __m128i intSumVal128 = _mm256_cvtpd_epi32(sumVal_Result);
             // 합친 결과를 절대값 변환
-            intSumVal128 = _mm_abs_epi32(intSumVal128);
-            // __m128i -> __m256i로 zero Expend 캐스팅
-            __m256i intSumVal = _mm256_castsi128_si256(intSumVal128);
-            // 데이터를 32bit -> 16bit으로 변환하기위해 zero data와 패킹
-            __m128i packedSumVal = _mm_packus_epi32(_mm256_extracti128_si256(intSumVal, 0), _mm256_extracti128_si256(intSumVal, 1));
-            // 데이터를 16bit -> 8bit으로 변환하고 상위데이터는 사용하지 않을 예정이므로 자기자신과 패킹
-            packedSumVal = _mm_packus_epi16(packedSumVal, packedSumVal);
-            // 사용할 하위 32bit 저장
-            _mm_storeu_si32((__m128i*) & des[y * width + x], packedSumVal);
+            sumVal_Result = _mm256_abs_epi16(sumVal_Result);
+            // 결과 값을 16 bit -> 8bit로 변환 빈공간은 0 Extend
+            __m256i packResult = _mm256_packus_epi16(sumVal_Result, _mm256_setzero_si256());
+            // 필요한 데이터 추출
+            __m128i resultData1 = _mm256_extracti128_si256(packResult, 0);
+            __m128i resultData2 = _mm256_extracti128_si256(packResult, 1);
+            // 사용할 하위 64bit를 나누어 저장
+            _mm_storeu_si64((__m128i*) & des[y * width + x], resultData1);
+            _mm_storeu_si64((__m128i*) & des[y * width + x + 8], resultData2);
         }
     }
 }
+
+void SSETempleteMatching(uint8_t* src, uint8_t* des, uint8_t* templete, int srcWidth, int srcHeight, int tmpWidth, int tmpHeight, int matchingRate)
+{
+    // 전체 픽셀 순회
+    int maxRate = 0;
+    int maxStartX = 0;
+    int maxStartY = 0;
+
+    for (int y = 0; y < srcHeight - tmpHeight; y++) {
+        for (int x = 0; x < srcWidth - tmpWidth - 8; x++) { // 4개의 픽셀을 한 번에 처리
+
+            __m256i sumVal = _mm256_setzero_si256();
+            int difAvg = 0;
+            for (int ky = 0; ky < tmpHeight; ky++) {
+                for (int kx = 0; kx < tmpWidth - 8; kx += 8) {
+                    int ny = y + ky;
+                    int nx = x + kx;
+
+                    __m128i srcPixel16 = _mm_loadu_si64((__m128i*) & src[ny * srcWidth + nx]);
+                    __m256i srcPixel = _mm256_cvtepu8_epi32(srcPixel16);
+                    __m128i tmpPixel16 = _mm_loadu_si64((__m128i*) & templete[ky * tmpWidth + kx]);
+                    __m256i tmpPixel = _mm256_cvtepu8_epi32(tmpPixel16);
+
+                    __m256i subVal = _mm256_sub_epi32(srcPixel, tmpPixel);
+                    __m256i absVal = _mm256_abs_epi32(subVal);
+
+                    sumVal = _mm256_add_epi32(sumVal, absVal);
+                }
+            }
+            difAvg += _mm256_sum_epi32(sumVal);
+            difAvg /= (tmpHeight * (tmpWidth - 8));
+            int Rate = (255 - difAvg) * 100 / 255;
+
+            if (Rate > maxRate) {
+                maxRate = Rate;
+                maxStartX = x;
+                maxStartY = y;
+            }
+
+        }
+    }
+    if (maxRate > matchingRate) {
+        // 네모 그리기?
+    }
+
+}
+
+void DrawRectangle() {
+
+}
+
+

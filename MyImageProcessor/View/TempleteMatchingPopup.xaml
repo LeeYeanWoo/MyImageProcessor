@@ -1,0 +1,25 @@
+﻿<Window x:Class="MyImageProcessor.View.TempleteMatchingPopup"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MyImageProcessor.View"
+        mc:Ignorable="d"
+        Title="TempleteMatchingPopup" Height="200" Width="400">
+    <Grid>
+        <StackPanel Margin="10">
+            <Label Content="템플릿 이미지를 선택하세요"/>
+            <WrapPanel>
+                <Label Content="템플릿 이미지 경로 "/>
+                <TextBox Name="TempleteImagePathTextBox" Width="190"/>
+                <Button Content="찾아보기" Click="TempleteImageLoadButtonClick"/>
+            </WrapPanel>
+            <Label Content="매칭율을 입력하세요"/>
+            <WrapPanel>
+                <Label Content="MatchingRate "/>
+                <TextBox Name="MatchingRateTextBox" Width="200"/>
+            </WrapPanel>
+            <Button Content="입력" Width="50" Click="DataSendButtonClick" Margin="10"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -24,10 +24,10 @@
                 <Button Content="가우시안" Click="GaussianButtonClick"/>
                 <Button Content="라플라시안" Click="LaplacianButtonClick"/>
                 <Button Content="소벨" Click="SobelButtonClick"/>
-                <Button Content="FFT"/>
+                <Button Content="FFT" Click="FFTButtonClick"/>
             </ToolBar>
             <ToolBar>
-                <Button Content="템플릿 매칭"/>
+                <Button Content="템플릿 매칭" Click="TempleteMatchingButtonClick"/>
             </ToolBar>
         </ToolBarTray>
 
@@ -107,8 +107,8 @@
                     <ListView Name="logListView" FontSize="15">
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Header="시간" Width="200"/>
-                                <GridViewColumn Header="내용" Width="1000"/>
+                                <GridViewColumn Header="시간" DisplayMemberBinding="{Binding Time}" Width="200"/>
+                                <GridViewColumn Header="내용" DisplayMemberBinding="{Binding Contents}" Width="1000"/>
                             </GridView>
                         </ListView.View>
                     </ListView>

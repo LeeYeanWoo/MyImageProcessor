@@ -3,6 +3,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using MyImageProcessor.Model;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,7 @@ namespace MyImageProcessor.ViewModel
     class ImageProcessorViewModel
     {
         private ImageProcessing imageProcessing;
+        Stopwatch stopWatch;
 
         public ImageModel SourceImage { get; set; }
 
@@ -28,6 +30,8 @@ namespace MyImageProcessor.ViewModel
             TargetImage = new();
             PreViewImage = new();
             imageProcessing = new();
+            stopWatch = new();
+            LogManager.WriteLog($"프로그램 시작");
         }
 
         public void ClearData()
@@ -46,6 +50,7 @@ namespace MyImageProcessor.ViewModel
             {
                 SourceImage.ImageLoad(dlgOpenFile.FileName);
                 PreViewImage.ImageLoad(dlgOpenFile.FileName);
+                LogManager.WriteLog($"{dlgOpenFile.FileName} 이미지 불러오기 성공!");
             }
         }
         public void TargetImageSave()
@@ -55,14 +60,20 @@ namespace MyImageProcessor.ViewModel
             if (dlgOpenFile.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 TargetImage.ImageSave(dlgOpenFile.FileName);
+                LogManager.WriteLog($"{dlgOpenFile.FileName} 이미지 저장 성공!");
             }
         }
 
         public void Binarization(int threshold)
         {
             Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            stopWatch.Start();
+            LogManager.WriteLog($"이진화 시작");
             Bitmap resultBitmap = imageProcessing.Binarize(sourceBitmap, threshold);
             TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+            stopWatch.Stop();
+            LogManager.WriteLog($"이진화 끝 소요시간 : {stopWatch.ElapsedMilliseconds}ms");
+            stopWatch.Reset();
 
             sourceBitmap.Dispose();
             resultBitmap.Dispose();
@@ -71,8 +82,13 @@ namespace MyImageProcessor.ViewModel
         public void Erosion(int threshold, int kernelX, int kernelY)
         {
             Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            stopWatch.Start();
+            LogManager.WriteLog($"침식 시작");
             Bitmap resultBitmap = imageProcessing.Erosion(sourceBitmap, threshold, kernelX, kernelY);
             TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+            stopWatch.Stop();
+            LogManager.WriteLog($"침식 끝 소요시간 : {stopWatch.ElapsedMilliseconds}ms");
+            stopWatch.Reset();
 
             sourceBitmap.Dispose();
             resultBitmap.Dispose();
@@ -81,8 +97,13 @@ namespace MyImageProcessor.ViewModel
         public void Dilation(int threshold, int kernelX, int kernelY)
         {
             Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            stopWatch.Start();
+            LogManager.WriteLog($"팽창 시작");
             Bitmap resultBitmap = imageProcessing.Dilation(sourceBitmap, threshold, kernelX, kernelY);
             TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+            stopWatch.Stop();
+            LogManager.WriteLog($"팽창 끝 소요시간 : {stopWatch.ElapsedMilliseconds}ms");
+            stopWatch.Reset();
 
             sourceBitmap.Dispose();
             resultBitmap.Dispose();
@@ -91,8 +112,13 @@ namespace MyImageProcessor.ViewModel
         public void GaussianBlur(int sigma)
         {
             Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            stopWatch.Start();
+            LogManager.WriteLog($"가우시안 블러 시작");
             Bitmap resultBitmap = imageProcessing.GaussianBlur(sourceBitmap, sigma);
             TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+            stopWatch.Stop();
+            LogManager.WriteLog($"가우시안 블러 끝 소요시간 : {stopWatch.ElapsedMilliseconds}ms");
+            stopWatch.Reset();
 
             sourceBitmap.Dispose();
             resultBitmap.Dispose();
@@ -101,8 +127,13 @@ namespace MyImageProcessor.ViewModel
         public void Equalization()
         {
             Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            stopWatch.Start();
+            LogManager.WriteLog($"평활화 시작");
             Bitmap resultBitmap = imageProcessing.Equalization(sourceBitmap);
             TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+            stopWatch.Stop();
+            LogManager.WriteLog($"평활화 끝 소요시간 : {stopWatch.ElapsedMilliseconds}ms");
+            stopWatch.Reset();
 
             sourceBitmap.Dispose();
             resultBitmap.Dispose();
@@ -111,8 +142,13 @@ namespace MyImageProcessor.ViewModel
         public void Sobel()
         {
             Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            stopWatch.Start();
+            LogManager.WriteLog($"소벨 엣지 추출 시작");
             Bitmap resultBitmap = imageProcessing.Sobel(sourceBitmap);
             TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+            stopWatch.Stop();
+            LogManager.WriteLog($"소벨 엣지 추출 끝 소요시간 : {stopWatch.ElapsedMilliseconds}ms");
+            stopWatch.Reset();
 
             sourceBitmap.Dispose();
             resultBitmap.Dispose();
@@ -121,8 +157,32 @@ namespace MyImageProcessor.ViewModel
         public void Laplacian()
         {
             Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            stopWatch.Start();
+            LogManager.WriteLog($"라플라시안 엣지 추출 시작");
             Bitmap resultBitmap = imageProcessing.Laplacian(sourceBitmap);
             TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+            stopWatch.Stop();
+            LogManager.WriteLog($"라플라시안 엣지 추출 끝 소요시간 : {stopWatch.ElapsedMilliseconds}ms");
+            stopWatch.Reset();
+
+            sourceBitmap.Dispose();
+            resultBitmap.Dispose();
+        }
+
+        public void TempleteMaching(string templeteImagePath, int matchingRate)
+        {
+            ImageModel templeteImage = new ImageModel();
+            templeteImage.ImageLoad(templeteImagePath);
+
+            Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            Bitmap templeteBitmap = ImageConverter.BitmapImageToBitmap(templeteImage.Image);
+            stopWatch.Start();
+            LogManager.WriteLog($"템플릿 매칭 시작");
+            Bitmap resultBitmap = imageProcessing.TempleteMatching(sourceBitmap, templeteBitmap, matchingRate);
+            TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+            stopWatch.Stop();
+            LogManager.WriteLog($"템플릿 매칭 끝 소요시간 : {stopWatch.ElapsedMilliseconds}ms");
+            stopWatch.Reset();
 
             sourceBitmap.Dispose();
             resultBitmap.Dispose();

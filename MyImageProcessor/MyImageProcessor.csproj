@@ -38,9 +38,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CLRImageProcessing, Version=1.0.8909.29251, Culture=neutral, processorArchitecture=AMD64">
+    <Reference Include="CLRImageProcessing, Version=1.0.8913.28921, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\x64\Release\CLRImageProcessing.dll</HintPath>
+      <HintPath>..\x64\Debug\CLRImageProcessing.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack">
       <HintPath>lib\Microsoft.WindowsAPICodePack.dll</HintPath>
@@ -71,6 +71,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Model\ImageConverter.cs" />
+    <Compile Include="Model\LogManager.cs" />
     <Compile Include="View\DilationPopup.xaml.cs">
       <DependentUpon>DilationPopup.xaml</DependentUpon>
     </Compile>
@@ -79,6 +80,9 @@
     </Compile>
     <Compile Include="View\GaussianPopup.xaml.cs">
       <DependentUpon>GaussianPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\TempleteMatchingPopup.xaml.cs">
+      <DependentUpon>TempleteMatchingPopup.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\ThresholdPopup.xaml.cs">
       <DependentUpon>ThresholdPopup.xaml</DependentUpon>
@@ -106,6 +110,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="View\ErosionPopup.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\TempleteMatchingPopup.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

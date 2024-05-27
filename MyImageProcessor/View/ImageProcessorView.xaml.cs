@@ -1,4 +1,5 @@
-﻿using MyImageProcessor.View;
+﻿using MyImageProcessor.Model;
+using MyImageProcessor.View;
 using MyImageProcessor.ViewModel;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,7 @@ namespace MyImageProcessor
             InitializeComponent();
             viewModel = new();
             DataContext = viewModel;
+            logListView.ItemsSource = LogManager.Instance;
         }
 
         private void ImageLoadButtonClick(object sender, RoutedEventArgs e)
@@ -162,6 +164,28 @@ namespace MyImageProcessor
             viewModel.Laplacian();
             targetScaleTransform.ScaleX = 1.0;
             targetScaleTransform.ScaleY = 1.0;
+        }
+
+        private void TempleteMatchingButtonClick(object sender, RoutedEventArgs e)
+        {
+            TempleteMatchingPopup templeteMatchingPopup = new();
+            templeteMatchingPopup.DataSendEvent += new DataGetEventHandler(this.TempleteMatchingDataGet);
+            templeteMatchingPopup.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            templeteMatchingPopup.ShowDialog();
+        }
+        private void TempleteMatchingDataGet(string data)
+        {
+            string[] dataArr = data.Split(',');
+            string templeteImagePath = dataArr[0];
+            int matchingRate = int.Parse(dataArr[1]);
+            viewModel.TempleteMaching(templeteImagePath, matchingRate);
+            targetScaleTransform.ScaleX = 1.0;
+            targetScaleTransform.ScaleY = 1.0;
+        }
+
+        private void FFTButtonClick(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
