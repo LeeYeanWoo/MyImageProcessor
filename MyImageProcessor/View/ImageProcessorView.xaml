@@ -127,8 +127,8 @@
                         <Grid Grid.Row="0">
                             <TextBox Text="PreView" FontSize="15" TextAlignment="Center" Background="#FAFAFA" VerticalContentAlignment="Center"/>
                         </Grid>
-                        <Grid Grid.Row="1" Width="170" Height="160">
-                            <Image Stretch="Uniform"
+                        <Grid Grid.Row="1">
+                            <Image Stretch="Uniform" HorizontalAlignment="Left" VerticalAlignment="Top"
                                    Source="{Binding PreViewImage.Image}"/>
                             <Canvas x:Name="overlayCanvas" IsHitTestVisible="False">
                                 <Rectangle x:Name="PreviewRectangle" Stroke="Red" StrokeThickness="2" Fill="Transparent"/>
