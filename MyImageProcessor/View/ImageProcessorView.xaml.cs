@@ -3,6 +3,7 @@ using MyImageProcessor.View;
 using MyImageProcessor.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,6 +31,102 @@ namespace MyImageProcessor
             viewModel = new();
             DataContext = viewModel;
             logListView.ItemsSource = LogManager.Instance;
+            LogManager.Instance.CollectionChanged += LogItems_CollectionChanged;
+        }
+        private void LogItems_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems != null && e.NewItems.Count > 0)
+            {
+                // 새로운 항목이 추가될 때 스크롤을 최신 항목으로 이동
+                logListView.ScrollIntoView(e.NewItems[e.NewItems.Count - 1]);
+            }
+        }
+
+        private void TargetScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            UpdatePreviewRectangle(targetScrollViewer, targetImage, PreviewRectangle);
+        }
+
+        private void UpdatePreviewRectangle(ScrollViewer scrollViewer, Image image, Rectangle rectangle)
+        {
+            if (image.Source is BitmapSource bitmap)
+            {
+                double scale = targetScaleTransform.ScaleX;
+
+                // Adjust the scale to fit the preview rectangle within the canvas
+                double canvasWidth = overlayCanvas.ActualWidth;
+                double canvasHeight = overlayCanvas.ActualHeight;
+                double imageWidth = bitmap.PixelWidth * scale;
+                double imageHeight = bitmap.PixelHeight * scale;
+
+                double viewportWidth = scrollViewer.ViewportWidth;
+                double viewportHeight = scrollViewer.ViewportHeight;
+                double offsetX = scrollViewer.HorizontalOffset;
+                double offsetY = scrollViewer.VerticalOffset;
+
+                double previewScaleX = canvasWidth / imageWidth;
+                double previewScaleY = canvasHeight / imageHeight;
+                double previewScale = Math.Min(previewScaleX, previewScaleY);
+
+                rectangle.Width = viewportWidth * previewScale;
+                rectangle.Height = viewportHeight * previewScale;
+                Canvas.SetLeft(rectangle, offsetX * previewScale);
+                Canvas.SetTop(rectangle, offsetY * previewScale);
+            }
+        }
+        private void SourceImage_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sourceImage.Source is BitmapSource bitmap)
+            {
+                double xScale = sourceScrollViewer.ViewportWidth / bitmap.PixelWidth;
+                double yScale = sourceScrollViewer.ViewportHeight / bitmap.PixelHeight;
+                double scale = Math.Min(xScale, yScale);
+
+                sourceScaleTransform.ScaleX = scale;
+                sourceScaleTransform.ScaleY = scale;
+            }
+        }
+
+        private void TargetImage_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (targetImage.Source is BitmapSource bitmap)
+            {
+                double xScale = targetScrollViewer.ViewportWidth / bitmap.PixelWidth;
+                double yScale = targetScrollViewer.ViewportHeight / bitmap.PixelHeight;
+                double scale = Math.Min(xScale, yScale);
+
+                targetScaleTransform.ScaleX = scale;
+                targetScaleTransform.ScaleY = scale;
+            }
+        }
+
+
+        private void SourceImage_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (e.Delta > 0)
+            {
+                sourceScaleTransform.ScaleX += 0.1;
+                sourceScaleTransform.ScaleY += 0.1;
+            }
+            else if (e.Delta < 0)
+            {
+                sourceScaleTransform.ScaleX -= 0.1;
+                sourceScaleTransform.ScaleY -= 0.1;
+            }
+        }
+
+        private void TargetImage_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (e.Delta > 0)
+            {
+                targetScaleTransform.ScaleX += 0.1;
+                targetScaleTransform.ScaleY += 0.1;
+            }
+            else if (e.Delta < 0)
+            {
+                targetScaleTransform.ScaleX -= 0.1;
+                targetScaleTransform.ScaleY -= 0.1;
+            }
         }
 
         private void ImageLoadButtonClick(object sender, RoutedEventArgs e)

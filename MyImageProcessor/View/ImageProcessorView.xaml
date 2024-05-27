@@ -50,9 +50,11 @@
                         <TextBox Text="이미지 소스" FontSize="20" TextAlignment="Center" Background="#FAFAFA" VerticalContentAlignment="Center"/>
                     </Grid>
                     <Grid Grid.Row="1">
-                        <ScrollViewer HorizontalScrollBarVisibility="Visible">
-                            <Image Stretch="Uniform"
-                                   Source="{Binding SourceImage.Image}">
+                        <ScrollViewer x:Name="sourceScrollViewer" HorizontalScrollBarVisibility="Visible">
+                            <Image x:Name="sourceImage" Stretch="Uniform"
+                                   Source="{Binding SourceImage.Image}"
+                                   Loaded="SourceImage_Loaded"
+                                   MouseWheel="SourceImage_MouseWheel">
                                 <Image.LayoutTransform>
                                     <TransformGroup>
                                         <ScaleTransform x:Name="sourceScaleTransform"/>
@@ -79,15 +81,18 @@
                     <TextBox Text="영상 처리 결과" FontSize="20" TextAlignment="Center" Background="#FAFAFA" VerticalContentAlignment="Center"/>
                 </Grid>
                 <Grid Grid.Row="1">
-                    <ScrollViewer HorizontalScrollBarVisibility="Visible">
-                        <Image Stretch="Uniform"
-                                   Source="{Binding TargetImage.Image}">
+                    <ScrollViewer x:Name="targetScrollViewer" HorizontalScrollBarVisibility="Visible" ScrollChanged="TargetScrollViewer_ScrollChanged">
+                        <Image x:Name="targetImage" Stretch="Uniform"
+                               Source="{Binding TargetImage.Image}"
+                               Loaded="TargetImage_Loaded"
+                               MouseWheel="TargetImage_MouseWheel">
                             <Image.LayoutTransform>
                                 <TransformGroup>
                                     <ScaleTransform x:Name="targetScaleTransform"/>
                                 </TransformGroup>
                             </Image.LayoutTransform>
                         </Image>
+
                     </ScrollViewer>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20">
                         <Button Margin="3" Width="30" Height="30" Content="+"
@@ -122,10 +127,12 @@
                         <Grid Grid.Row="0">
                             <TextBox Text="PreView" FontSize="15" TextAlignment="Center" Background="#FAFAFA" VerticalContentAlignment="Center"/>
                         </Grid>
-                        <Grid Grid.Row="1">
+                        <Grid Grid.Row="1" Width="170" Height="160">
                             <Image Stretch="Uniform"
                                    Source="{Binding PreViewImage.Image}"/>
-
+                            <Canvas x:Name="overlayCanvas" IsHitTestVisible="False">
+                                <Rectangle x:Name="PreviewRectangle" Stroke="Red" StrokeThickness="2" Fill="Transparent"/>
+                            </Canvas>
                         </Grid>
                     </Grid>
                 </Grid>
