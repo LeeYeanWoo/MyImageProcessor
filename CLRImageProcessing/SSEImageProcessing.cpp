@@ -327,7 +327,7 @@ void SSELaplacian(uint8_t* src, uint8_t* des, int width, int height)
     }
 }
 
-void SSETempleteMatching(uint8_t* src, uint8_t* des, uint8_t* templete, int srcWidth, int srcHeight, int tmpWidth, int tmpHeight, int matchingRate)
+void SSETempleteMatching(uint8_t* src, uint8_t* templete, int srcWidth, int srcHeight, int tmpWidth, int tmpHeight, int matchingRate, int& matchPointX, int& matchPointY)
 {
     // 전체 픽셀 순회
     int maxRate = 0;
@@ -364,17 +364,12 @@ void SSETempleteMatching(uint8_t* src, uint8_t* des, uint8_t* templete, int srcW
                 maxStartX = x;
                 maxStartY = y;
             }
-
         }
     }
     if (maxRate > matchingRate) {
-        // 네모 그리기?
+        matchPointX = maxStartX;
+        matchPointY = maxStartY;
     }
-
-}
-
-void DrawRectangle() {
-
 }
 
 

@@ -178,14 +178,32 @@ namespace MyImageProcessor.ViewModel
             Bitmap templeteBitmap = ImageConverter.BitmapImageToBitmap(templeteImage.Image);
             stopWatch.Start();
             LogManager.WriteLog($"템플릿 매칭 시작");
-            Bitmap resultBitmap = imageProcessing.TempleteMatching(sourceBitmap, templeteBitmap, matchingRate);
+            Bitmap resultBitmap = new(sourceBitmap);
+            Point matchingPoint = (Point)imageProcessing.TempleteMatching(sourceBitmap, templeteBitmap, matchingRate);
+            DrawMatchingResult(matchingPoint, templeteBitmap.Width, templeteBitmap.Height, resultBitmap);
             TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
             stopWatch.Stop();
+            LogManager.WriteLog($"매치 포인트 X : {matchingPoint.X} Y : {matchingPoint.Y}");
             LogManager.WriteLog($"템플릿 매칭 끝 소요시간 : {stopWatch.ElapsedMilliseconds}ms");
             stopWatch.Reset();
 
             sourceBitmap.Dispose();
             resultBitmap.Dispose();
+        }
+
+        public void DrawMatchingResult(Point point, int width, int height, Bitmap resultBitmap)
+        {
+            // 펜 생성
+            Pen redPen = new System.Drawing.Pen(System.Drawing.Brushes.Red, 3);
+
+            using (Graphics g = Graphics.FromImage(resultBitmap))
+            {
+                // 도형 그리기 - X,Y좌표입력 후 100x100 사각형을 그림
+                g.DrawRectangle(redPen, new Rectangle(point.X, point.Y, width, height));
+            }
+
+            // Dispose
+            redPen.Dispose();
         }
     }
 }

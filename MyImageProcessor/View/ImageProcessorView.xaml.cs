@@ -68,6 +68,8 @@ namespace MyImageProcessor
                 double previewScaleY = canvasHeight / imageHeight;
                 double previewScale = Math.Min(previewScaleX, previewScaleY);
 
+                if (previewScale < 0) previewScale = 0.0;
+
                 rectangle.Width = viewportWidth * previewScale;
                 rectangle.Height = viewportHeight * previewScale;
                 Canvas.SetLeft(rectangle, offsetX * previewScale);
@@ -105,13 +107,13 @@ namespace MyImageProcessor
         {
             if (e.Delta > 0)
             {
-                sourceScaleTransform.ScaleX += 0.1;
-                sourceScaleTransform.ScaleY += 0.1;
+                sourceScaleTransform.ScaleX *= 1.1;
+                sourceScaleTransform.ScaleY *= 1.1;
             }
             else if (e.Delta < 0)
             {
-                sourceScaleTransform.ScaleX -= 0.1;
-                sourceScaleTransform.ScaleY -= 0.1;
+                sourceScaleTransform.ScaleX /= 1.1;
+                sourceScaleTransform.ScaleY /= 1.1;
             }
         }
 
@@ -119,13 +121,13 @@ namespace MyImageProcessor
         {
             if (e.Delta > 0)
             {
-                targetScaleTransform.ScaleX += 0.1;
-                targetScaleTransform.ScaleY += 0.1;
+                targetScaleTransform.ScaleX *= 1.1;
+                targetScaleTransform.ScaleY *= 1.1;
             }
             else if (e.Delta < 0)
             {
-                targetScaleTransform.ScaleX -= 0.1;
-                targetScaleTransform.ScaleY -= 0.1;
+                targetScaleTransform.ScaleX /= 1.1;
+                targetScaleTransform.ScaleY /= 1.1;
             }
         }
 
@@ -186,8 +188,6 @@ namespace MyImageProcessor
         {
             int threshold = int.Parse(data);
             viewModel.Binarization(threshold);
-            targetScaleTransform.ScaleX = 1.0;
-            targetScaleTransform.ScaleY = 1.0;
         }
 
         private void ErosionButtonClick(object sender, RoutedEventArgs e)
@@ -205,8 +205,6 @@ namespace MyImageProcessor
             int kernelX = int.Parse(dataArr[1]);
             int kernelY = int.Parse(dataArr[2]);
             viewModel.Erosion(threshold, kernelX, kernelY);
-            targetScaleTransform.ScaleX = 1.0;
-            targetScaleTransform.ScaleY = 1.0;
         }
 
         private void DilationButtonClick(object sender, RoutedEventArgs e)
@@ -224,8 +222,6 @@ namespace MyImageProcessor
             int kernelX = int.Parse(dataArr[1]);
             int kernelY = int.Parse(dataArr[2]);
             viewModel.Dilation(threshold, kernelX, kernelY);
-            targetScaleTransform.ScaleX = 1.0;
-            targetScaleTransform.ScaleY = 1.0;
         }
         private void GaussianButtonClick(object sender, RoutedEventArgs e)
         {
@@ -238,29 +234,21 @@ namespace MyImageProcessor
         {
             int sigma = int.Parse(data);
             viewModel.GaussianBlur(sigma);
-            targetScaleTransform.ScaleX = 1.0;
-            targetScaleTransform.ScaleY = 1.0;
         }
 
         private void EqualizationButtonClick(object sender, RoutedEventArgs e)
         {
             viewModel.Equalization();
-            targetScaleTransform.ScaleX = 1.0;
-            targetScaleTransform.ScaleY = 1.0;
         }
 
         private void SobelButtonClick(object sender, RoutedEventArgs e)
         {
             viewModel.Sobel();
-            targetScaleTransform.ScaleX = 1.0;
-            targetScaleTransform.ScaleY = 1.0;
         }
 
         private void LaplacianButtonClick(object sender, RoutedEventArgs e)
         {
             viewModel.Laplacian();
-            targetScaleTransform.ScaleX = 1.0;
-            targetScaleTransform.ScaleY = 1.0;
         }
 
         private void TempleteMatchingButtonClick(object sender, RoutedEventArgs e)
@@ -276,8 +264,6 @@ namespace MyImageProcessor
             string templeteImagePath = dataArr[0];
             int matchingRate = int.Parse(dataArr[1]);
             viewModel.TempleteMaching(templeteImagePath, matchingRate);
-            targetScaleTransform.ScaleX = 1.0;
-            targetScaleTransform.ScaleY = 1.0;
         }
 
         private void FFTButtonClick(object sender, RoutedEventArgs e)

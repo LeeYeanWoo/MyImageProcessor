@@ -17,6 +17,6 @@ namespace CLRImageProcessing {
 		Bitmap^ Equalization(Bitmap^ sourceBitmap);
 		Bitmap^ Sobel(Bitmap^ sourceBitmap);
 		Bitmap^ Laplacian(Bitmap^ sourceBitmap);
-		Bitmap^ TempleteMatching(Bitmap^ sourceBitmap, Bitmap^ templeteBitmap, int matchingRate);
+		Point^ TempleteMatching(Bitmap^ sourceBitmap, Bitmap^ templeteBitmap, int matchingRate);
 	};
 }

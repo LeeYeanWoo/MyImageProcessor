@@ -92,8 +92,10 @@
                                 </TransformGroup>
                             </Image.LayoutTransform>
                         </Image>
-
                     </ScrollViewer>
+                    <Canvas x:Name="matchCanvas" Visibility="Collapsed">
+                        <Rectangle x:Name="matchRectangle" Stroke="Red" StrokeThickness="2" Fill="Transparent"/>
+                    </Canvas>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20">
                         <Button Margin="3" Width="30" Height="30" Content="+"
                                 Click="TargetScaleUpButtonClick"/>
