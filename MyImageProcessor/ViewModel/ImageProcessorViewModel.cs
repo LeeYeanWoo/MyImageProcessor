@@ -169,6 +169,21 @@ namespace MyImageProcessor.ViewModel
             resultBitmap.Dispose();
         }
 
+        public void FFTransform()
+        {
+            Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            stopWatch.Start();
+            LogManager.WriteLog($"FFT 변환 시작");
+            Bitmap resultBitmap = imageProcessing.FFTransform(sourceBitmap);
+            TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+            stopWatch.Stop();
+            LogManager.WriteLog($"FFT 변환 끝 소요시간 : {stopWatch.ElapsedMilliseconds}ms");
+            stopWatch.Reset();
+
+            sourceBitmap.Dispose();
+            resultBitmap.Dispose();
+        }
+
         public void TempleteMaching(string templeteImagePath, int matchingRate)
         {
             ImageModel templeteImage = new ImageModel();

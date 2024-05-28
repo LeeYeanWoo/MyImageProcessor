@@ -38,7 +38,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CLRImageProcessing, Version=1.0.8913.28921, Culture=neutral, processorArchitecture=AMD64">
+    <Reference Include="CLRImageProcessing, Version=1.0.8914.17919, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\x64\Release\CLRImageProcessing.dll</HintPath>
     </Reference>
@@ -78,6 +78,9 @@
     <Compile Include="View\ErosionPopup.xaml.cs">
       <DependentUpon>ErosionPopup.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\FFTPopup.xaml.cs">
+      <DependentUpon>FFTPopup.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\GaussianPopup.xaml.cs">
       <DependentUpon>GaussianPopup.xaml</DependentUpon>
     </Compile>
@@ -88,6 +91,10 @@
       <DependentUpon>ThresholdPopup.xaml</DependentUpon>
     </Compile>
     <Page Include="View\DilationPopup.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\FFTPopup.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

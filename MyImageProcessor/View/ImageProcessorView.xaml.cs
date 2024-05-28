@@ -268,7 +268,7 @@ namespace MyImageProcessor
 
         private void FFTButtonClick(object sender, RoutedEventArgs e)
         {
-
+            viewModel.FFTransform();
         }
     }
 }

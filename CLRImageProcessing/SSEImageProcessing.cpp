@@ -2,6 +2,9 @@
 #include "SSEImageProcessing.h"
 #include <intrin.h>
 #include "math.h"
+#include <complex>
+#include <vector>
+using namespace std;
 
 // 부호 없는 8비트 정수 비교를 위한 함수
 __m256i _mm256_cmpgt_epu8(__m256i a, __m256i b)
@@ -23,6 +26,34 @@ int _mm256_sum_epi32(__m256i a) {
     sumResult += _mm256_extract_epi32(a, 7);
 
     return sumResult;
+}
+
+void FFT(vector<complex<double>>& x, bool inverse) {
+    const double pi = System::Math::PI;
+    int N = x.size();  // assume n is a power of 2
+
+    // bit reversal permutation
+    for (int i = 1, rev = 0; i < N; i++) {
+        int bit = (N >> 1);
+        while (rev >= bit) rev -= bit, bit >>= 1;
+        rev += bit;
+        // bit reversal is symmetric
+        if (i < rev) swap(x[i], x[rev]);
+    }
+
+    // iterative implementation
+    for (int i = 2; i <= N; i <<= 1) {
+        for (int j = 0; j < N; j += i)
+            for (int k = 0; k < i / 2; k++) {
+                complex<double> Wk = polar(1.0, (inverse ? -1 : 1) * -2.0 * pi * k / i);
+                complex<double> even = x[j + k], odd = x[j + k + i / 2];
+                x[j + k] = even + Wk * odd;
+                x[j + k + i / 2] = even - Wk * odd;
+            }
+    }
+
+    // IFFT scaling
+    if (inverse) for (int i = 0; i < N; i++) x[i] /= N;
 }
 
 void SSEBinarize(uint8_t* src, uint8_t* des, int width, int height, int threshold)
@@ -325,6 +356,11 @@ void SSELaplacian(uint8_t* src, uint8_t* des, int width, int height)
             _mm_storeu_si64((__m128i*) & des[y * width + x + 8], resultData2);
         }
     }
+}
+
+void SSEFFTransform(uint8_t* src, uint8_t* des, int width, int height)
+{
+    complex<double> com1;
 }
 
 void SSETempleteMatching(uint8_t* src, uint8_t* templete, int srcWidth, int srcHeight, int tmpWidth, int tmpHeight, int matchingRate, int& matchPointX, int& matchPointY)
