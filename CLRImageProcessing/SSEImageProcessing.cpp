@@ -371,30 +371,39 @@ void SSETempleteMatching(uint8_t* src, uint8_t* templete, int srcWidth, int srcH
     int maxStartY = 0;
 
     for (int y = 0; y < srcHeight - tmpHeight; y++) {
-        for (int x = 0; x < srcWidth - tmpWidth - 8; x++) { // 4개의 픽셀을 한 번에 처리
+        for (int x = 0; x < srcWidth - tmpWidth - 8; x++) { // 8개의 픽셀을 한 번에 처리
 
+            //합을 누적할 레지스터 선언
             __m256i sumVal = _mm256_setzero_si256();
             int difAvg = 0;
+            // 템플릿 크기만큼 순회
             for (int ky = 0; ky < tmpHeight; ky++) {
                 for (int kx = 0; kx < tmpWidth - 8; kx += 8) {
                     int ny = y + ky;
                     int nx = x + kx;
 
-                    __m128i srcPixel16 = _mm_loadu_si64((__m128i*) & src[ny * srcWidth + nx]);
-                    __m256i srcPixel = _mm256_cvtepu8_epi32(srcPixel16);
-                    __m128i tmpPixel16 = _mm_loadu_si64((__m128i*) & templete[ky * tmpWidth + kx]);
-                    __m256i tmpPixel = _mm256_cvtepu8_epi32(tmpPixel16);
-
+                    // 8바이트 8픽셀 단위로 소스 이미지 로드
+                    __m128i srcPixel8 = _mm_loadu_si64((__m128i*) & src[ny * srcWidth + nx]);
+                    // 로드된 8바이트 8픽셀을 32비트 signed Intager로 변환
+                    __m256i srcPixel = _mm256_cvtepu8_epi32(srcPixel8);
+                    // 8바이트 8픽셀 단위로 템플릿 이미지 로드
+                    __m128i tmpPixel8 = _mm_loadu_si64((__m128i*) & templete[ky * tmpWidth + kx]);
+                    // 로드된 8바이트 8픽셀을 32비트 signed Intager로 변환
+                    __m256i tmpPixel = _mm256_cvtepu8_epi32(tmpPixel8);
+                    // 8개의 픽셀값이 든 레지스터 두개의 각 픽셀의 차이를 계산
                     __m256i subVal = _mm256_sub_epi32(srcPixel, tmpPixel);
+                    // 픽셀의 차이를 양수로 변경
                     __m256i absVal = _mm256_abs_epi32(subVal);
-
+                    // 픽셀의 차이를 sumVal에 누적
                     sumVal = _mm256_add_epi32(sumVal, absVal);
                 }
             }
+            // 픽셀값의 차이의 평균을 구하기
             difAvg += _mm256_sum_epi32(sumVal);
             difAvg /= (tmpHeight * (tmpWidth - 8));
             int Rate = (255 - difAvg) * 100 / 255;
 
+            // 현재 이미지가 템플릿과의 매칭율이 가장 높은 매칭일 경우 업데이트
             if (Rate > maxRate) {
                 maxRate = Rate;
                 maxStartX = x;
@@ -402,6 +411,7 @@ void SSETempleteMatching(uint8_t* src, uint8_t* templete, int srcWidth, int srcH
             }
         }
     }
+    // 가장 높은 매칭율이 파라미터로 정한 매칭율보다 높은 경우 포인트 정보 입력
     if (maxRate > matchingRate) {
         matchPointX = maxStartX;
         matchPointY = maxStartY;
