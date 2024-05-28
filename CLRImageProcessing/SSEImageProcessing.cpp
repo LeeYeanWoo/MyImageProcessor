@@ -30,30 +30,77 @@ int _mm256_sum_epi32(__m256i a) {
 
 void FFT(vector<complex<double>>& x, bool inverse) {
     const double pi = System::Math::PI;
-    int N = x.size();  // assume n is a power of 2
+    int N = x.size();  // assume N is a power of 2
 
-    // bit reversal permutation
-    for (int i = 1, rev = 0; i < N; i++) {
-        int bit = (N >> 1);
-        while (rev >= bit) rev -= bit, bit >>= 1;
+    // Bit reversal permutation
+    for (int i = 1, rev = 0; i < N; ++i) {
+        int bit = N >> 1;
+        while (rev >= bit) {
+            rev -= bit;
+            bit >>= 1;
+        }
         rev += bit;
-        // bit reversal is symmetric
-        if (i < rev) swap(x[i], x[rev]);
+        if (i < rev) {
+            swap(x[i], x[rev]);
+        }
     }
 
-    // iterative implementation
-    for (int i = 2; i <= N; i <<= 1) {
-        for (int j = 0; j < N; j += i)
-            for (int k = 0; k < i / 2; k++) {
-                complex<double> Wk = polar(1.0, (inverse ? -1 : 1) * -2.0 * pi * k / i);
-                complex<double> even = x[j + k], odd = x[j + k + i / 2];
-                x[j + k] = even + Wk * odd;
-                x[j + k + i / 2] = even - Wk * odd;
+    // Iterative FFT implementation
+    for (int len = 2; len <= N; len <<= 1) {
+        double angle = 2.0 * pi / len * (inverse ? -1 : 1);
+        complex<double> Wlen(cos(angle), sin(angle)); // Wlen = e^(i*angle)
+        for (int i = 0; i < N; i += len) {
+            complex<double> W(1);
+            for (int j = 0; j < len / 2; ++j) {
+                complex<double> even = x[i + j];
+                complex<double> odd = x[i + j + len / 2] * W;
+                x[i + j] = even + odd;
+                x[i + j + len / 2] = even - odd;
+                W *= Wlen;
             }
+        }
     }
 
-    // IFFT scaling
-    if (inverse) for (int i = 0; i < N; i++) x[i] /= N;
+    // Scaling for IFFT
+    if (inverse) {
+        for (auto& val : x) {
+            val /= N;
+        }
+    }
+}
+
+// 2D FFT 함수
+void FFT2D(vector<vector<complex<double>>>& data, bool inverse) {
+    int rows = data.size();
+    int cols = data[0].size();
+
+    // FFT on rows
+    for (int i = 0; i < rows; ++i) {
+        FFT(data[i], inverse);
+    }
+
+    // FFT on columns
+    for (int j = 0; j < cols; ++j) {
+        vector<complex<double>> column(rows);
+        for (int i = 0; i < rows; ++i) {
+            column[i] = data[i][j];
+        }
+        FFT(column, inverse);
+        for (int i = 0; i < rows; ++i) {
+            data[i][j] = column[i];
+        }
+    }
+}
+
+// 주파수 필터 (저주파 필터의 예시)
+void LowPassFilter(vector<vector<complex<double>>>& data, int width, int height, int cutoff) {
+    for (int u = 0; u < height; ++u) {
+        for (int v = 0; v < width; ++v) {
+            if (u > cutoff && u < (height - cutoff) && v > cutoff && v < (width - cutoff)) {
+                data[u][v] = 0;
+            }
+        }
+    }
 }
 
 void SSEBinarize(uint8_t* src, uint8_t* des, int width, int height, int threshold)
@@ -360,7 +407,30 @@ void SSELaplacian(uint8_t* src, uint8_t* des, int width, int height)
 
 void SSEFFTransform(uint8_t* src, uint8_t* des, int width, int height)
 {
-    complex<double> com1;
+    // 이미지 데이터를 복소수 형태로 변환
+    vector<vector<complex<double>>> data(height, vector<complex<double>>(width));
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            data[i][j] = complex<double>(src[i * width + j], 0.0);
+        }
+    }
+
+    // 2D FFT 변환
+    FFT2D(data, false);
+
+    // 저주파 필터 적용
+    int cutoff = 30; // 필터 컷오프 주파수 (예시)
+    LowPassFilter(data, width, height, cutoff);
+
+    // 2D IFFT 변환
+    FFT2D(data, true);
+
+    // 결과를 다시 이미지 데이터로 변환
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            des[i * width + j] = static_cast<uint8_t>(round(real(data[i][j])));
+        }
+    }
 }
 
 void SSETempleteMatching(uint8_t* src, uint8_t* templete, int srcWidth, int srcHeight, int tmpWidth, int tmpHeight, int matchingRate, int& matchPointX, int& matchPointY)
