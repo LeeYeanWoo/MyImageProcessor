@@ -30,95 +30,6 @@ int _mm256_sum_epi32(__m256i a) {
     return sumResult;
 }
 
-void FFT(vector<complex<double>>& x, bool inverse) {
-    const double pi = System::Math::PI;
-    int N = x.size();  // assume N is a power of 2
-
-    // Bit reversal permutation
-    for (int i = 1, rev = 0; i < N; ++i) {
-        int bit = N >> 1;
-        while (rev >= bit) {
-            rev -= bit;
-            bit >>= 1;
-        }
-        rev += bit;
-        if (i < rev) {
-            swap(x[i], x[rev]);
-        }
-    }
-
-    // Iterative FFT implementation
-    for (int len = 2; len <= N; len <<= 1) {
-        double angle = 2.0 * pi / len * (inverse ? -1 : 1);
-        complex<double> Wlen(cos(angle), sin(angle)); // Wlen = e^(i*angle)
-        for (int i = 0; i < N; i += len) {
-            complex<double> W(1);
-            for (int j = 0; j < len / 2; ++j) {
-                complex<double> even = x[i + j];
-                complex<double> odd = x[i + j + len / 2] * W;
-                x[i + j] = even + odd;
-                x[i + j + len / 2] = even - odd;
-                W *= Wlen;
-            }
-        }
-    }
-
-    // Scaling for IFFT
-    if (inverse) {
-        for (auto& val : x) {
-            val /= N;
-        }
-    }
-}
-
-// 2D FFT 함수
-void FFT2D(vector<vector<complex<double>>>& data, bool inverse) {
-    int rows = data.size();
-    int cols = data[0].size();
-
-    // FFT on rows
-    for (int i = 0; i < rows; ++i) {
-        FFT(data[i], inverse);
-    }
-
-    // FFT on columns
-    for (int j = 0; j < cols; ++j) {
-        vector<complex<double>> column(rows);
-        for (int i = 0; i < rows; ++i) {
-            column[i] = data[i][j];
-        }
-        FFT(column, inverse);
-        for (int i = 0; i < rows; ++i) {
-            data[i][j] = column[i];
-        }
-    }
-}
-
-// 저역 통과 필터
-void LowPassFilter(vector<vector<complex<double>>>& data, int width, int height, int filterSize) {
-    for (int u = 0; u < height; ++u) {
-        for (int v = 0; v < width; ++v) {
-            if ((u > filterSize && u < height - filterSize) || (v > filterSize && v < width - filterSize)) {
-                data[u][v] = 0;
-            }
-        }
-    }
-}
-
-// 고역 통과 필터
-void HighPassFilter(vector<vector<complex<double>>>& data, int width, int height, int filterSize) {
-    for (int u = 0; u < height; ++u) {
-        for (int v = 0; v < width; ++v) {
-            if (u > (height / 2 - filterSize) && u < (height / 2 + filterSize) && v >(width / 2 - filterSize) && v < (width / 2 + filterSize)) {
-            }
-            else
-            {
-                data[u][v] = 0;
-            }
-        }
-    }
-}
-
 void SSEBinarize(uint8_t* src, uint8_t* des, int width, int height, int threshold)
 {
     int pixelNum = width * height;
@@ -417,6 +328,96 @@ void SSELaplacian(uint8_t* src, uint8_t* des, int width, int height)
             // 사용할 하위 64bit를 나누어 저장
             _mm_storeu_si64((__m128i*) & des[y * width + x], resultData1);
             _mm_storeu_si64((__m128i*) & des[y * width + x + 8], resultData2);
+        }
+    }
+}
+
+// 1차원 FFT
+void FFT(vector<complex<double>>& x, bool inverse) {
+    const double pi = System::Math::PI;
+    int N = x.size();  // assume N is a power of 2
+
+    // 순열 데이터 반전 실행
+    for (int i = 1, rev = 0; i < N; ++i) {
+        int bit = N >> 1;
+        while (rev >= bit) {
+            rev -= bit;
+            bit >>= 1;
+        }
+        rev += bit;
+        if (i < rev) {
+            swap(x[i], x[rev]);
+        }
+    }
+
+    // FFT 실행
+    for (int len = 2; len <= N; len <<= 1) {
+        double angle = 2.0 * pi / len * (inverse ? -1 : 1);
+        complex<double> Wlen(cos(angle), sin(angle)); // Wlen = e^(i*angle)
+        for (int i = 0; i < N; i += len) {
+            complex<double> W(1);
+            for (int j = 0; j < len / 2; ++j) {
+                complex<double> even = x[i + j];
+                complex<double> odd = x[i + j + len / 2] * W;
+                x[i + j] = even + odd;
+                x[i + j + len / 2] = even - odd;
+                W *= Wlen;
+            }
+        }
+    }
+
+    // 역FFT시 사용
+    if (inverse) {
+        for (auto& val : x) {
+            val /= N;
+        }
+    }
+}
+
+// 2차원 FFT
+void FFT2D(vector<vector<complex<double>>>& data, bool inverse) {
+    int rows = data.size();
+    int cols = data[0].size();
+
+    // FFT on rows
+    for (int i = 0; i < rows; ++i) {
+        FFT(data[i], inverse);
+    }
+
+    // FFT on columns
+    for (int j = 0; j < cols; ++j) {
+        vector<complex<double>> column(rows);
+        for (int i = 0; i < rows; ++i) {
+            column[i] = data[i][j];
+        }
+        FFT(column, inverse);
+        for (int i = 0; i < rows; ++i) {
+            data[i][j] = column[i];
+        }
+    }
+}
+
+// 저역 통과 필터
+void LowPassFilter(vector<vector<complex<double>>>& data, int width, int height, int filterSize) {
+    for (int u = 0; u < height; ++u) {
+        for (int v = 0; v < width; ++v) {
+            if ((u > filterSize && u < height - filterSize) || (v > filterSize && v < width - filterSize)) {
+                data[u][v] = 0;
+            }
+        }
+    }
+}
+
+// 고역 통과 필터
+void HighPassFilter(vector<vector<complex<double>>>& data, int width, int height, int filterSize) {
+    for (int u = 0; u < height; ++u) {
+        for (int v = 0; v < width; ++v) {
+            if (u > (height / 2 - filterSize) && u < (height / 2 + filterSize) && v >(width / 2 - filterSize) && v < (width / 2 + filterSize)) {
+            }
+            else
+            {
+                data[u][v] = 0;
+            }
         }
     }
 }
