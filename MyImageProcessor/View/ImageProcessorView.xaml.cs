@@ -268,7 +268,24 @@ namespace MyImageProcessor
 
         private void FFTButtonClick(object sender, RoutedEventArgs e)
         {
-            viewModel.FFTransform();
+            FFTPopup fFTPopup = new();
+            fFTPopup.DataSendEvent += new DataGetEventHandler(this.FFTDataGet);
+            fFTPopup.SpectrumGetEvent += new SpectrumGetEventHandler(this.FFTSpectrumGet);
+            fFTPopup.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            fFTPopup.ShowDialog();
+        }
+
+        private void FFTDataGet(string data)
+        {
+            string[] dataArr = data.Split(',');
+            int filterSize = int.Parse(dataArr[0]);
+            bool lowFilterUse = bool.Parse(dataArr[1]);
+            viewModel.FFTransform(filterSize, lowFilterUse);
+        }
+
+        private void FFTSpectrumGet()
+        {
+            viewModel.GetFFTSpectrum();
         }
     }
 }

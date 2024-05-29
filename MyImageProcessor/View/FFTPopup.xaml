@@ -5,8 +5,23 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MyImageProcessor.View"
         mc:Ignorable="d"
-        Title="FFTPopup" Height="200" Width="400">
+        Title="FFTPopup" Height="300" Width="400">
     <Grid>
-        
+        <StackPanel Margin="10">
+            <Label Content="스펙트럼 이미지 보기"/>
+            <Button Content="스펙트럼 이미지" Width="100" Click="SpectrumGetButtonClick" Margin="10"/>
+            <Label Content="사용할 필터의 종류를 선택하세요"/>
+            <WrapPanel>
+                <Label Content="Filter "/>
+                <RadioButton Name="lowFilterUse" GroupName="filterRadio" Content="저역 주파수 통과 필터 " VerticalAlignment="Center"/>
+                <RadioButton Name="highFilterUse" GroupName="filterRadio" Content="고역 주파수 통과 필터" VerticalAlignment="Center" IsChecked="True"/>
+            </WrapPanel>
+            <Label Content="연산에 사용할 필터의 크기를 입력하세요"/>
+            <WrapPanel>
+                <Label Content="Filter Size "/>
+                <TextBox Name="FilterSizeTextBox" Width="90"/>
+            </WrapPanel>
+            <Button Content="입력" Width="50" Click="DataSendButtonClick" Margin="10"/>
+        </StackPanel>
     </Grid>
 </Window>

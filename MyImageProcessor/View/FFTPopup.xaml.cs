@@ -17,11 +17,42 @@ namespace MyImageProcessor.View
     /// <summary>
     /// FFTPopup.xaml에 대한 상호 작용 논리
     /// </summary>
+    public delegate void SpectrumGetEventHandler();
+    
     public partial class FFTPopup : Window
     {
+        public DataGetEventHandler DataSendEvent;
+        public SpectrumGetEventHandler SpectrumGetEvent;
         public FFTPopup()
         {
             InitializeComponent();
+        }
+        private void DataSendButtonClick(object sender, RoutedEventArgs e)
+        {
+            int filterSize = -1;
+            bool lowLevelFilterUse = (bool)lowFilterUse.IsChecked;
+            try
+            {
+                filterSize = int.Parse(FilterSizeTextBox.Text);
+            }
+            catch (FormatException)
+            {
+                FilterSizeTextBox.Text = $"잘못된 입력입니다";
+            }
+
+            if (filterSize > 0)
+            {
+                DataSendEvent($"{FilterSizeTextBox.Text},{lowLevelFilterUse}");
+                Close();
+            }
+            else
+                FilterSizeTextBox.Text = $"잘못된 입력입니다";
+        }
+
+        private void SpectrumGetButtonClick(object sender, RoutedEventArgs e)
+        {
+            SpectrumGetEvent();
+            Close();
         }
     }
 }

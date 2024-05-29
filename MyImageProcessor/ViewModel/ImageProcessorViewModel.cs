@@ -169,12 +169,26 @@ namespace MyImageProcessor.ViewModel
             resultBitmap.Dispose();
         }
 
-        public void FFTransform()
+        public void FFTransform(int filterSize, bool lowFilterUse)
         {
             Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
             stopWatch.Start();
             LogManager.WriteLog($"FFT 변환 시작");
-            Bitmap resultBitmap = imageProcessing.FFTransform(sourceBitmap);
+            Bitmap resultBitmap = imageProcessing.FFTransform(sourceBitmap, filterSize, lowFilterUse);
+            TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+            stopWatch.Stop();
+            LogManager.WriteLog($"FFT 변환 끝 소요시간 : {stopWatch.ElapsedMilliseconds}ms");
+            stopWatch.Reset();
+
+            sourceBitmap.Dispose();
+            resultBitmap.Dispose();
+        }
+        public void GetFFTSpectrum()
+        {
+            Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            stopWatch.Start();
+            LogManager.WriteLog($"FFT 변환 시작");
+            Bitmap resultBitmap = imageProcessing.GetFFTSpectrum(sourceBitmap);
             TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
             stopWatch.Stop();
             LogManager.WriteLog($"FFT 변환 끝 소요시간 : {stopWatch.ElapsedMilliseconds}ms");

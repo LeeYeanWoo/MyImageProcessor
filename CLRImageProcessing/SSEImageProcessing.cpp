@@ -6,6 +6,8 @@
 #include <vector>
 using namespace std;
 
+void GetSpectrumData(vector<vector<complex<double>>>& data);
+
 // 부호 없는 8비트 정수 비교를 위한 함수
 __m256i _mm256_cmpgt_epu8(__m256i a, __m256i b)
 {
@@ -92,11 +94,25 @@ void FFT2D(vector<vector<complex<double>>>& data, bool inverse) {
     }
 }
 
-// 주파수 필터 (저주파 필터의 예시)
-void LowPassFilter(vector<vector<complex<double>>>& data, int width, int height, int cutoff) {
+// 저역 통과 필터
+void LowPassFilter(vector<vector<complex<double>>>& data, int width, int height, int filterSize) {
     for (int u = 0; u < height; ++u) {
         for (int v = 0; v < width; ++v) {
-            if (u > cutoff && u < (height - cutoff) && v > cutoff && v < (width - cutoff)) {
+            if ((u > filterSize && u < height - filterSize) || (v > filterSize && v < width - filterSize)) {
+                data[u][v] = 0;
+            }
+        }
+    }
+}
+
+// 고역 통과 필터
+void HighPassFilter(vector<vector<complex<double>>>& data, int width, int height, int filterSize) {
+    for (int u = 0; u < height; ++u) {
+        for (int v = 0; v < width; ++v) {
+            if (u > (height / 2 - filterSize) && u < (height / 2 + filterSize) && v >(width / 2 - filterSize) && v < (width / 2 + filterSize)) {
+            }
+            else
+            {
                 data[u][v] = 0;
             }
         }
@@ -279,14 +295,14 @@ void SSEEqualization(uint8_t* src, uint8_t* des, int width, int height)
 void SSESobel(uint8_t* src, uint8_t* des, int width, int height)
 {
     //y축 편미분 필터
-    double sobelYFilter[3][3] = 
+    int sobelYFilter[3][3] = 
     {
         {-1,-2,-1},
         {0 ,0 ,0},
         {1 ,2 ,1}
     };
     //x축 편미분 필터
-    double sobelXFilter[3][3] =
+    int sobelXFilter[3][3] =
     {
         {-1 ,0 ,1},
         {-2 ,0 ,2},
@@ -350,7 +366,7 @@ void SSESobel(uint8_t* src, uint8_t* des, int width, int height)
 void SSELaplacian(uint8_t* src, uint8_t* des, int width, int height)
 {
 	// 라플라시안 필터
-	double laplacianFilter[3][3] =
+    int laplacianFilter[3][3] =
 	{
 		{1,1,1},
 		{1,-8,1},
@@ -405,10 +421,14 @@ void SSELaplacian(uint8_t* src, uint8_t* des, int width, int height)
     }
 }
 
-void SSEFFTransform(uint8_t* src, uint8_t* des, int width, int height)
+void SSEFFTransform(uint8_t* src, uint8_t* des, int width, int height, int filterSize, bool lowFilterUse)
 {
+    // power of 2 변환
+    int FFTWidth = pow(2, ceil(log2((double)width)));
+    int FFTHeight = pow(2, ceil(log2((double)height)));
+    
     // 이미지 데이터를 복소수 형태로 변환
-    vector<vector<complex<double>>> data(height, vector<complex<double>>(width));
+    vector<vector<complex<double>>> data(FFTHeight, vector<complex<double>>(FFTWidth));
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
             data[i][j] = complex<double>(src[i * width + j], 0.0);
@@ -418,9 +438,11 @@ void SSEFFTransform(uint8_t* src, uint8_t* des, int width, int height)
     // 2D FFT 변환
     FFT2D(data, false);
 
-    // 저주파 필터 적용
-    int cutoff = 30; // 필터 컷오프 주파수 (예시)
-    LowPassFilter(data, width, height, cutoff);
+    // 필터 적용
+    if(lowFilterUse)
+        LowPassFilter(data, width, height, filterSize);
+    else
+        HighPassFilter(data, width, height, filterSize);
 
     // 2D IFFT 변환
     FFT2D(data, true);
@@ -429,6 +451,80 @@ void SSEFFTransform(uint8_t* src, uint8_t* des, int width, int height)
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
             des[i * width + j] = static_cast<uint8_t>(round(real(data[i][j])));
+        }
+    }
+}
+
+void SSEFFTSpectrum(uint8_t* src, uint8_t* des, int width, int height)
+{
+    int FFTWidth = pow(2, ceil(log2((double)width)));
+    int FFTHeight = pow(2, ceil(log2((double)height)));
+
+    // 이미지 데이터를 복소수 형태로 변환
+    vector<vector<complex<double>>> data(FFTHeight, vector<complex<double>>(FFTWidth));
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            data[i][j] = complex<double>(src[i * width + j], 0.0);
+        }
+    }
+
+    // 2D FFT 변환
+    FFT2D(data, false);
+
+    GetSpectrumData(data);
+
+    // 결과를 다시 이미지 데이터로 변환
+    for (int i = 0; i < FFTHeight; ++i) {
+        for (int j = 0; j < FFTWidth; ++j) {
+            des[i * FFTWidth + j] = static_cast<uint8_t>(round(real(data[i][j])));
+        }
+    }
+    SSEEqualization(des, des, FFTWidth, FFTHeight);
+}
+void GetSpectrumData(vector<vector<complex<double>>>& data) {
+    int width = data[0].size();
+    int height = data.size();
+    // log 스케일 전환
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            double temp = 1 + (sqrt(data[i][j].real() * data[i][j].real() + data[i][j].imag() * data[i][j].imag()));
+            int logData = 20 * log(temp);
+            data[i][j] = logData > 255 ? 255 : logData;
+        }
+    }
+    vector<vector<complex<double>>> copyData(data);
+    // 1사분면 - 3사분면 Swap
+    // 1사분면
+    for (int i = 0; i < height / 2; i++)
+    {
+        for (int j = 0; j < data[0].size() / 2; j++)
+        {
+            data[i][j] = copyData[i + (height / 2)][j + (width / 2)];
+        }
+    }
+    // 3사분면
+    for (int i = height / 2; i < height; i++)
+    {
+        for (int j = width / 2; j < width; j++)
+        {
+            data[i][j] = copyData[i - (height / 2)][j - (width / 2)];
+        }
+    }
+    // 2사분면 - 4사분면 Swap
+    // 2사분면
+    for (int i = 0; i < height / 2; i++)
+    {
+        for (int j = width / 2; j < width; j++)
+        {
+            data[i][j] = copyData[i + (height / 2)][j - (width / 2)];
+        }
+    }
+    // 4사분면
+    for (int i = height / 2; i < height; i++)
+    {
+        for (int j = 0; j < width / 2; j++)
+        {
+            data[i][j] = copyData[i - (height / 2)][j + (width / 2)];
         }
     }
 }
