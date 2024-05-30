@@ -76,7 +76,7 @@ namespace MyImageProcessor
                 Canvas.SetTop(rectangle, offsetY * previewScale);
             }
         }
-        private void SourceImage_Loaded(object sender, RoutedEventArgs e)
+        private void AdjustSourceScale()
         {
             if (sourceImage.Source is BitmapSource bitmap)
             {
@@ -88,8 +88,7 @@ namespace MyImageProcessor
                 sourceScaleTransform.ScaleY = scale;
             }
         }
-
-        private void TargetImage_Loaded(object sender, RoutedEventArgs e)
+        private void AdjustTargetScale()
         {
             if (targetImage.Source is BitmapSource bitmap)
             {
@@ -101,8 +100,6 @@ namespace MyImageProcessor
                 targetScaleTransform.ScaleY = scale;
             }
         }
-
-
         private void SourceImage_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (e.Delta > 0)
@@ -134,8 +131,7 @@ namespace MyImageProcessor
         private void ImageLoadButtonClick(object sender, RoutedEventArgs e)
         {
             viewModel.SourceImageLoad();
-            sourceScaleTransform.ScaleX = 1.0;
-            sourceScaleTransform.ScaleY = 1.0;
+            AdjustSourceScale();
         }
 
         private void ImageSaveButtonClick(object sender, RoutedEventArgs e)
@@ -188,6 +184,8 @@ namespace MyImageProcessor
         {
             int threshold = int.Parse(data);
             viewModel.Binarization(threshold);
+            AdjustSourceScale();
+            AdjustTargetScale();
         }
 
         private void ErosionButtonClick(object sender, RoutedEventArgs e)
@@ -205,6 +203,8 @@ namespace MyImageProcessor
             int kernelX = int.Parse(dataArr[1]);
             int kernelY = int.Parse(dataArr[2]);
             viewModel.Erosion(threshold, kernelX, kernelY);
+            AdjustSourceScale();
+            AdjustTargetScale();
         }
 
         private void DilationButtonClick(object sender, RoutedEventArgs e)
@@ -222,6 +222,8 @@ namespace MyImageProcessor
             int kernelX = int.Parse(dataArr[1]);
             int kernelY = int.Parse(dataArr[2]);
             viewModel.Dilation(threshold, kernelX, kernelY);
+            AdjustSourceScale();
+            AdjustTargetScale();
         }
         private void GaussianButtonClick(object sender, RoutedEventArgs e)
         {
@@ -234,21 +236,29 @@ namespace MyImageProcessor
         {
             int sigma = int.Parse(data);
             viewModel.GaussianBlur(sigma);
+            AdjustSourceScale();
+            AdjustTargetScale();
         }
 
         private void EqualizationButtonClick(object sender, RoutedEventArgs e)
         {
             viewModel.Equalization();
+            AdjustSourceScale();
+            AdjustTargetScale();
         }
 
         private void SobelButtonClick(object sender, RoutedEventArgs e)
         {
             viewModel.Sobel();
+            AdjustSourceScale();
+            AdjustTargetScale();
         }
 
         private void LaplacianButtonClick(object sender, RoutedEventArgs e)
         {
             viewModel.Laplacian();
+            AdjustSourceScale();
+            AdjustTargetScale();
         }
 
         private void TempleteMatchingButtonClick(object sender, RoutedEventArgs e)
@@ -264,6 +274,8 @@ namespace MyImageProcessor
             string templeteImagePath = dataArr[0];
             int matchingRate = int.Parse(dataArr[1]);
             viewModel.TempleteMaching(templeteImagePath, matchingRate);
+            AdjustSourceScale();
+            AdjustTargetScale();
         }
 
         private void FFTButtonClick(object sender, RoutedEventArgs e)
@@ -281,11 +293,20 @@ namespace MyImageProcessor
             int filterSize = int.Parse(dataArr[0]);
             bool lowFilterUse = bool.Parse(dataArr[1]);
             viewModel.FFTransform(filterSize, lowFilterUse);
+            AdjustSourceScale();
+            AdjustTargetScale();
         }
 
         private void FFTSpectrumGet()
         {
             viewModel.GetFFTSpectrum();
+            AdjustSourceScale();
+            AdjustTargetScale();
+        }
+
+        private void ChangeSourceButtonClick(object sender, RoutedEventArgs e)
+        {
+            viewModel.ChangeSource();
         }
     }
 }

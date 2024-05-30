@@ -63,6 +63,16 @@ namespace MyImageProcessor.ViewModel
                 LogManager.WriteLog($"{dlgOpenFile.FileName} 이미지 저장 성공!");
             }
         }
+        public void ChangeSource()
+        {
+            Bitmap resultBitmap = ImageConverter.BitmapImageToBitmap(TargetImage.Image);
+            Bitmap sourceBitmap = new(resultBitmap);
+            sourceBitmap = imageProcessing.GrayScale(sourceBitmap);
+            SourceImage.Image = ImageConverter.BitmapToBitmapImage(sourceBitmap);
+
+            sourceBitmap.Dispose();
+            resultBitmap.Dispose();
+        }
 
         public void Binarization(int threshold)
         {

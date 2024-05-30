@@ -63,7 +63,9 @@ void SSEErosion(uint8_t* src, uint8_t* des, int width, int height, int threshold
 
     // 전체 픽셀 순회
     for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x += 32) {
+        int remainX = 0;
+        for (int x = 0; x < width - 32; x += 32) {
+            remainX = x;
             // 커널 영역 순회하며 커널영역에 픽셀중 하나라도 0인경우
             // 대상 픽셀의 값을 0으로 변경하기 위해 커널영역의 최소값을 업데이트 하는 벡터 생성
             __m256i minVal = _mm256_set1_epi8(255);
@@ -82,6 +84,23 @@ void SSEErosion(uint8_t* src, uint8_t* des, int width, int height, int threshold
             // 결과이미지에 저장
             _mm256_storeu_si256((__m256i*) & des[y * width + x], minVal);
         }
+        // 병렬 처리 불가능한 남은 픽셀 처리
+        for (int i = remainX; i < width; i++) {
+            int min = 255;
+            for (int ky = -halfKernelY; ky <= halfKernelY; ky++) {
+                for (int kx = -halfKernelX; kx <= halfKernelX; kx++) {
+                    int ny = y + ky;
+                    int nx = i + kx;
+
+                    // 이미지 영역 안의 픽셀만 처리
+                    if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+                        uint8_t pixel = src[ny * width + nx];
+                        min = min < (int)pixel ? min : (int)pixel;
+                    }
+
+                }
+            }
+        }
     }
 }
 
@@ -95,7 +114,9 @@ void SSEDilation(uint8_t* src, uint8_t* des, int width, int height, int threshol
 
     // 전체 픽셀 순회
     for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x += 32) {
+        int remainX = 0;
+        for (int x = 0; x < width - 32; x += 32) {
+            remainX = x;
             // 커널 영역 순회하며 커널영역에 픽셀중 하나라도 0이 아닌경우
             // 대상 픽셀의 값을 255으로 변경하기 위해 커널영역의 최소값을 업데이트 하는 벡터 생성
             __m256i maxVal = _mm256_setzero_si256();
@@ -114,6 +135,23 @@ void SSEDilation(uint8_t* src, uint8_t* des, int width, int height, int threshol
             // 결과이미지에 저장
             _mm256_storeu_si256((__m256i*) & des[y * width + x], maxVal);
         }
+        // 병렬 처리 불가능한 남은 픽셀 처리
+        for (int i = remainX; i < width; i++) {
+            int max = 0;
+            for (int ky = -halfKernelY; ky <= halfKernelY; ky++) {
+                for (int kx = -halfKernelX; kx <= halfKernelX; kx++) {
+                    int ny = y + ky;
+                    int nx = i + kx;
+
+                    // 이미지 영역 안의 픽셀만 처리
+                    if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+                        uint8_t pixel = src[ny * width + nx];
+                        max = max > (int)pixel ? max : (int)pixel;
+                    }
+
+                }
+            }
+        }
     }
 }
 
@@ -127,7 +165,9 @@ void SSEGaussianBlur(uint8_t* src, uint8_t* des, int width, int height, double* 
 
     // 전체 픽셀 순회
     for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width - 4; x += 4) { // 4개의 픽셀을 한 번에 처리
+        int remainX = 0;
+        for (int x = 0; x < width - halfKernelX - 4; x += 4) { // 4개의 픽셀을 한 번에 처리
+            remainX = x;
             // 커널의 값과 인접 픽셀 값을 곱한 값을 저장할 벡터
             __m256d sumVal = _mm256_setzero_pd();
 
@@ -168,6 +208,27 @@ void SSEGaussianBlur(uint8_t* src, uint8_t* des, int width, int height, double* 
             packedSumVal = _mm_packus_epi16(packedSumVal, packedSumVal);
             // 사용할 하위 32bit 저장
             _mm_storeu_si32((__m128i*) & des[y * width + x], packedSumVal);
+        }
+        // 병렬 처리 불가능한 남은 픽셀 처리
+        for (int i = remainX; i < width; i++) {
+            double sumResult = 0;
+            for (int ky = -halfKernelY; ky <= halfKernelY; ky++) {
+                for (int kx = -halfKernelX; kx <= halfKernelX; kx++) {
+                    int ny = y + ky;
+                    int nx = i + kx;
+                    // 이미지 영역 안의 픽셀만 처리
+                    if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+                        // 현재 커널의 가중치 로드
+                        double kernelVal = kernel[(ky + halfKernelY) * kernelWidth + (kx + halfKernelX)];
+                        // 픽셀 로드 
+                        uint8_t pixel = src[ny * width + nx];
+                        // 계산
+                        sumResult += kernelVal * (double)pixel;
+                    }
+                }
+            }
+            sumResult = ceil(sumResult);
+            des[y * width + i] = (uint8_t)sumResult;
         }
     }
 }
@@ -225,8 +286,11 @@ void SSESobel(uint8_t* src, uint8_t* des, int width, int height)
     int halfKernelY = filterWidth / 2;
 
     // 전체 픽셀 순회
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width - 16; x += 16) { // 4개의 픽셀을 한 번에 처리
+    for (int y = 1; y < height; y++) {
+        int remainX = 0;
+        for (int x = 1; x < width -16; x += 16) { // 4개의 픽셀을 한 번에 처리
+            // 남은 픽셀의 start 지점 갱신
+            remainX = x;
             // 커널의 값과 인접 픽셀 값을 곱한 값을 저장할 벡터
             __m256i sumVal_X = _mm256_setzero_si256();
             __m256i sumVal_Y = _mm256_setzero_si256();
@@ -271,6 +335,31 @@ void SSESobel(uint8_t* src, uint8_t* des, int width, int height)
             _mm_storeu_si64((__m128i*) & des[y * width + x], resultData1);
             _mm_storeu_si64((__m128i*) & des[y * width + x + 8], resultData2);
         }
+        // 병렬 처리 불가능한 남은 픽셀 처리
+        for (int i = remainX; i < width; i++) {
+            int sumX = 0, sumY = 0, sumResult = 0;
+            for (int ky = -halfKernelY; ky <= halfKernelY; ky++) {
+                for (int kx = -halfKernelX; kx <= halfKernelX; kx++) {
+                    int ny = y + ky;
+                    int nx = i + kx;
+
+                    // 이미지 영역 안의 픽셀만 처리
+                    if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+                        // 현재 필터값 로드
+                        int FilterVal_X = sobelXFilter[ky + halfKernelY][kx + halfKernelX];
+                        int FilterVal_Y = sobelYFilter[ky + halfKernelY][kx + halfKernelX];
+                        // 픽셀 로드 
+                        uint8_t pixel = src[ny * width + nx];
+                        // 계산
+                        sumX += (FilterVal_X * pixel);
+                        sumY += (FilterVal_Y * pixel);
+                    }
+                }
+            }
+            // X 축 미분 결과 Y축 미분 결과를 더하여 절대값 처리
+            sumResult = abs(sumX + sumY) > 255 ? 255 : abs(sumX + sumY);
+            des[y * width + i] = (uint8_t)sumResult;
+        }
     }
 }
 
@@ -289,8 +378,11 @@ void SSELaplacian(uint8_t* src, uint8_t* des, int width, int height)
     int halfKernelY = filterWidth / 2;
 
     // 전체 픽셀 순회
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width - 16; x += 16) { // 4개의 픽셀을 한 번에 처리
+    for (int y = 1; y < height; y++) {
+        int remainX = 0;
+        for (int x = 1; x < width - 16; x += 16) { // 16개의 픽셀을 한 번에 처리
+            // 남은 픽셀의 start 지점 갱신
+            remainX = x;
             // 커널의 값과 인접 픽셀 값을 곱한 값을 저장할 벡터
             __m256i sumVal_Result = _mm256_setzero_si256();
 
@@ -329,15 +421,37 @@ void SSELaplacian(uint8_t* src, uint8_t* des, int width, int height)
             _mm_storeu_si64((__m128i*) & des[y * width + x], resultData1);
             _mm_storeu_si64((__m128i*) & des[y * width + x + 8], resultData2);
         }
+        // 병렬 처리 불가능한 남은 픽셀 처리
+        for (int i = remainX; i < width; i++) {
+            int sumResult = 0;
+            for (int ky = -halfKernelY; ky <= halfKernelY; ky++) {
+                for (int kx = -halfKernelX; kx <= halfKernelX; kx++) {
+                    int ny = y + ky;
+                    int nx = i + kx;
+                    // 이미지 영역 안의 픽셀만 처리
+                    if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+                        // 현재 필터값 로드
+                        int FilterVal = laplacianFilter[ky + halfKernelY][kx + halfKernelX];
+                        // 픽셀 로드 
+                        uint8_t pixel = src[ny * width + nx];
+                        // 계산
+                        sumResult += (FilterVal * pixel);
+                    }
+                }
+            }
+            sumResult = abs(sumResult) > 255 ? 255 : abs(sumResult);
+            des[y * width + i] = (uint8_t)sumResult;
+        }
     }
 }
 
 // 1차원 FFT
 void FFT(vector<complex<double>>& x, bool inverse) {
     const double pi = System::Math::PI;
-    int N = x.size();  // assume N is a power of 2
+    // N은 2의 거듭제곱 형식으로 나타나야함
+    int N = x.size();  
 
-    // 순열 데이터 반전 실행
+    // 수열 데이터 반전 실행
     for (int i = 1, rev = 0; i < N; ++i) {
         int bit = N >> 1;
         while (rev >= bit) {
@@ -352,13 +466,18 @@ void FFT(vector<complex<double>>& x, bool inverse) {
 
     // FFT 실행
     for (int len = 2; len <= N; len <<= 1) {
+        //e^i2(pi)ux = cos(2*pi*ux) + i sin(2*pi*ux)
         double angle = 2.0 * pi / len * (inverse ? -1 : 1);
-        complex<double> Wlen(cos(angle), sin(angle)); // Wlen = e^(i*angle)
+        // Wlen = e^(i*angle)
+        complex<double> Wlen(cos(angle), sin(angle)); 
+        // Wlen을 주기가 같은 위치에 연산
         for (int i = 0; i < N; i += len) {
             complex<double> W(1);
             for (int j = 0; j < len / 2; ++j) {
                 complex<double> even = x[i + j];
                 complex<double> odd = x[i + j + len / 2] * W;
+                //F(A) = [F(B) + DF(C)]
+                //       [F(B) - DF(C)]
                 x[i + j] = even + odd;
                 x[i + j + len / 2] = even - odd;
                 W *= Wlen;
@@ -379,12 +498,12 @@ void FFT2D(vector<vector<complex<double>>>& data, bool inverse) {
     int rows = data.size();
     int cols = data[0].size();
 
-    // FFT on rows
+    // 행단위 FFT 실행
     for (int i = 0; i < rows; ++i) {
         FFT(data[i], inverse);
     }
 
-    // FFT on columns
+    // 열단위 FFT 실행
     for (int j = 0; j < cols; ++j) {
         vector<complex<double>> column(rows);
         for (int i = 0; i < rows; ++i) {
@@ -424,7 +543,7 @@ void HighPassFilter(vector<vector<complex<double>>>& data, int width, int height
 
 void SSEFFTransform(uint8_t* src, uint8_t* des, int width, int height, int filterSize, bool lowFilterUse)
 {
-    // power of 2 변환
+    // 2의 거듭 제곱 형식으로 변환
     int FFTWidth = pow(2, ceil(log2((double)width)));
     int FFTHeight = pow(2, ceil(log2((double)height)));
     
@@ -458,6 +577,7 @@ void SSEFFTransform(uint8_t* src, uint8_t* des, int width, int height, int filte
 
 void SSEFFTSpectrum(uint8_t* src, uint8_t* des, int width, int height)
 {
+    // 2의 거듭 제곱 형식으로 변환
     int FFTWidth = pow(2, ceil(log2((double)width)));
     int FFTHeight = pow(2, ceil(log2((double)height)));
 
@@ -474,17 +594,21 @@ void SSEFFTSpectrum(uint8_t* src, uint8_t* des, int width, int height)
 
     GetSpectrumData(data);
 
-    // 결과를 다시 이미지 데이터로 변환
+    // 결과를 복원하지 않고 스펙트럼 이미지로 데이터로 변환
     for (int i = 0; i < FFTHeight; ++i) {
         for (int j = 0; j < FFTWidth; ++j) {
             des[i * FFTWidth + j] = static_cast<uint8_t>(round(real(data[i][j])));
         }
     }
+
+    // 명암 대비를 위해 평활화 실행
     SSEEqualization(des, des, FFTWidth, FFTHeight);
 }
 void GetSpectrumData(vector<vector<complex<double>>>& data) {
     int width = data[0].size();
     int height = data.size();
+
+    // 스펙트럼 변환 공식(F(u,v) = [R(u,v)^2 + I(u,v)^2]^1/2) 적용
     // log 스케일 전환
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
@@ -494,6 +618,7 @@ void GetSpectrumData(vector<vector<complex<double>>>& data) {
         }
     }
     vector<vector<complex<double>>> copyData(data);
+
     // 1사분면 - 3사분면 Swap
     // 1사분면
     for (int i = 0; i < height / 2; i++)

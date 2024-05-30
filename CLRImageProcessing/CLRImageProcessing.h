@@ -10,6 +10,7 @@ namespace CLRImageProcessing {
 	public ref class ImageProcessing
 	{
 	public:
+		Bitmap^ GrayScale(Bitmap^sourceBitmap);
 		Bitmap^ Binarize(Bitmap^sourceBitmap , int threshold);
 		Bitmap^ Erosion(Bitmap^ sourceBitmap, int threshold, int kernelX, int kernelY);
 		Bitmap^ Dilation(Bitmap^ sourceBitmap, int threshold, int kernelX, int kernelY);

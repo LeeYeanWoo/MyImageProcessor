@@ -9,6 +9,52 @@ using namespace CLRImageProcessing;
 
 double* GetGaussianFilter(int sigma);
 
+Bitmap^ CLRImageProcessing::ImageProcessing::GrayScale(Bitmap^ sourceBitmap)
+{
+	Bitmap^ newBitmap = gcnew Bitmap(sourceBitmap->Width, sourceBitmap->Height, Imaging::PixelFormat::Format8bppIndexed);
+
+	// 팔레트 설정 (기본 그레이스케일 팔레트 사용)
+	ColorPalette^ palette = newBitmap->Palette;
+	for (int i = 0; i < 256; i++)
+	{
+		palette->Entries[i] = Color::FromArgb(i, i, i);
+	}
+	newBitmap->Palette = palette;
+
+	// 원본 이미지 데이터를 잠그고 바이트 배열로 변환
+	BitmapData^ originalData = sourceBitmap->LockBits(System::Drawing::Rectangle(0, 0, sourceBitmap->Width, sourceBitmap->Height), ImageLockMode::ReadOnly, sourceBitmap->PixelFormat);
+	BitmapData^ newBitmapData = newBitmap->LockBits(System::Drawing::Rectangle(0, 0, newBitmap->Width, newBitmap->Height), ImageLockMode::WriteOnly, Imaging::PixelFormat::Format8bppIndexed);
+
+	int bytesPerPixel = System::Drawing::Bitmap::GetPixelFormatSize(sourceBitmap->PixelFormat) / 8;
+	int height = sourceBitmap->Height;
+	int width = sourceBitmap->Width;
+
+	byte* pixelData = static_cast<byte*>(originalData->Scan0.ToPointer());
+	byte* newPixelData = static_cast<byte*>(newBitmapData->Scan0.ToPointer());
+
+	// 픽셀 데이터 변환
+	for (int y = 0; y < height; y++)
+	{
+		for (int x = 0; x < width; x++)
+		{
+			int index32 = y * originalData->Stride + x * bytesPerPixel;
+			byte b = pixelData[index32];
+			byte g = pixelData[index32 + 1];
+			byte r = pixelData[index32 + 2];
+
+			// 그레이스케일 값 계산
+			byte gray = (byte)(0.3 * r + 0.59 * g + 0.11 * b) * 3;
+			newPixelData[y * newBitmapData->Stride + x] = gray;
+		}
+	}
+
+	// 이미지 데이터 잠금 해제
+	sourceBitmap->UnlockBits(originalData);
+	newBitmap->UnlockBits(newBitmapData);
+
+	return newBitmap;
+}
+
 Bitmap^ CLRImageProcessing::ImageProcessing::Binarize(Bitmap^ sourceBitmap, int threshold)
 {	
 	Bitmap^ targetBitmap = gcnew Bitmap(sourceBitmap);
@@ -159,8 +205,11 @@ Bitmap^ CLRImageProcessing::ImageProcessing::Sobel(Bitmap^ sourceBitmap)
 		, targetBitmap->Height), ImageLockMode::ReadWrite, sourceBitmap->PixelFormat);
 	byte* sPtr = static_cast<byte*>(sourceBitmapData->Scan0.ToPointer());
 	byte* tPtr = static_cast<byte*>(targetBitmapData->Scan0.ToPointer());
+	// width를 4바이트의 배수로 맞춰주기 위해 패딩 추가
+	int padding = (sourceBitmap->Width % 4) == 0 ? 0 : 4 - (sourceBitmap->Width % 4);
+	int paddingWidth = sourceBitmap->Width + padding;
 	//처리 시작
-	SSESobel(sPtr, tPtr, sourceBitmap->Width, sourceBitmap->Height);
+	SSESobel(sPtr, tPtr, paddingWidth, sourceBitmap->Height);
 	//처리 끝
 	sourceBitmap->UnlockBits(sourceBitmapData);
 	targetBitmap->UnlockBits(targetBitmapData);
@@ -185,8 +234,11 @@ Bitmap^ CLRImageProcessing::ImageProcessing::Laplacian(Bitmap^ sourceBitmap)
 		, targetBitmap->Height), ImageLockMode::ReadWrite, sourceBitmap->PixelFormat);
 	byte* sPtr = static_cast<byte*>(sourceBitmapData->Scan0.ToPointer());
 	byte* tPtr = static_cast<byte*>(targetBitmapData->Scan0.ToPointer());
+	// width를 4바이트의 배수로 맞춰주기 위해 패딩 추가
+	int padding = (sourceBitmap->Width % 4) == 0 ? 0 : 4 - (sourceBitmap->Width % 4);
+	int paddingWidth = sourceBitmap->Width + padding;
 	//처리 시작
-	SSELaplacian(sPtr, tPtr, sourceBitmap->Width, sourceBitmap->Height);
+	SSELaplacian(sPtr, tPtr, paddingWidth, sourceBitmap->Height);
 	//처리 끝
 	sourceBitmap->UnlockBits(sourceBitmapData);
 	targetBitmap->UnlockBits(targetBitmapData);
