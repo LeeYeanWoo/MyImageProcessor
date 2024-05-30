@@ -684,15 +684,16 @@ void SSETempleteMatching(uint8_t* src, uint8_t* templete, int srcWidth, int srcH
                     __m256i tmpPixel = _mm256_cvtepu8_epi32(tmpPixel8);
                     // 8개의 픽셀값이 든 레지스터 두개의 각 픽셀의 차이를 계산
                     __m256i subVal = _mm256_sub_epi32(srcPixel, tmpPixel);
-                    // 픽셀의 차이를 양수로 변경
-                    __m256i absVal = _mm256_abs_epi32(subVal);
+                    // 픽셀의 차이를 제곱
+                    __m256i mulVal = _mm256_mullo_epi32(subVal, subVal);
                     // 픽셀의 차이를 sumVal에 누적
-                    sumVal = _mm256_add_epi32(sumVal, absVal);
+                    sumVal = _mm256_add_epi32(sumVal, mulVal);
                 }
             }
-            // 픽셀값의 차이의 평균을 구하기
-            difAvg += _mm256_sum_epi32(sumVal);
+            // 픽셀값의 차이의 제곱 평균을 구하기
+            difAvg = _mm256_sum_epi32(sumVal);
             difAvg /= (tmpHeight * (tmpWidth - 8));
+            difAvg = sqrt(difAvg);
             int Rate = (255 - difAvg) * 100 / 255;
 
             // 현재 이미지가 템플릿과의 매칭율이 가장 높은 매칭일 경우 업데이트
