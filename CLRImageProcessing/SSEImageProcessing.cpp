@@ -18,14 +18,9 @@ __m256i _mm256_cmpgt_epu8(__m256i a, __m256i b)
 }
 int _mm256_sum_epi32(__m256i a) {
     int sumResult = 0;
-    sumResult += _mm256_extract_epi32(a, 0);
-    sumResult += _mm256_extract_epi32(a, 1);
-    sumResult += _mm256_extract_epi32(a, 2);
-    sumResult += _mm256_extract_epi32(a, 3);
-    sumResult += _mm256_extract_epi32(a, 4);
-    sumResult += _mm256_extract_epi32(a, 5);
-    sumResult += _mm256_extract_epi32(a, 6);
-    sumResult += _mm256_extract_epi32(a, 7);
+    for (int i = 0; i < 8; i++) {
+        sumResult += a.m256i_i32[i];
+    }
 
     return sumResult;
 }
@@ -476,8 +471,9 @@ void FFT(vector<complex<double>>& x, bool inverse) {
             for (int j = 0; j < len / 2; ++j) {
                 complex<double> even = x[i + j];
                 complex<double> odd = x[i + j + len / 2] * W;
-                //F(A) = [F(B) + DF(C)]
-                //       [F(B) - DF(C)]
+                // x[i + j] 는 인덱스 스왑 전 짝수 번쨰 인덱스
+                // x[i + j + len / 2]는 인덱스 스왑전 x[i + j]의 인덱스 + 1 인 홀수 번쨰 인덱스
+                //  A(k + N/2) = 홀수부를 음수로 처리한 것과 동일 
                 x[i + j] = even + odd;
                 x[i + j + len / 2] = even - odd;
                 W *= Wlen;
