@@ -604,6 +604,7 @@ void SSEFFTSpectrum(uint8_t* src, uint8_t* des, int width, int height)
     // 명암 대비를 위해 평활화 실행
     SSEEqualization(des, des, FFTWidth, FFTHeight);
 }
+
 void GetSpectrumData(vector<vector<complex<double>>>& data) {
     int width = data[0].size();
     int height = data.size();
@@ -709,6 +710,58 @@ void SSETempleteMatching(uint8_t* src, uint8_t* templete, int srcWidth, int srcH
         matchPointX = maxStartX;
         matchPointY = maxStartY;
     }
+}
+
+void GetSimilarityImage(uint8_t* src, uint8_t* des, uint8_t* templete, int srcWidth, int srcHeight, int tmpWidth, int tmpHeight)
+{
+    // 전체 픽셀 순회
+    int maxRate = 0;
+    int maxStartX = 0;
+    int maxStartY = 0;
+
+    for (int y = 0; y < srcHeight; y++) {
+        for (int x = 0; x < srcWidth - 8; x++) { // 8개의 픽셀을 한 번에 처리
+
+            //합을 누적할 레지스터 선언
+            __m256i sumVal = _mm256_setzero_si256();
+            int difAvg = 0;
+            // 템플릿 크기만큼 순회
+            for (int ky = 0; ky < tmpHeight; ky++) {
+                for (int kx = 0; kx < tmpWidth - 8; kx += 8) {
+                    int ny = y + ky;
+                    int nx = x + kx;
+                    // 이미지 영역 안의 픽셀만 처리
+                    if (ny >= 0 && ny < srcHeight && nx >= 0 && nx < srcWidth) {
+
+                        // 8바이트 8픽셀 단위로 소스 이미지 로드
+                        __m128i srcPixel8 = _mm_loadu_si64((__m128i*) & src[ny * srcWidth + nx]);
+                        // 로드된 8바이트 8픽셀을 32비트 signed Intager로 변환
+                        __m256i srcPixel = _mm256_cvtepu8_epi32(srcPixel8);
+                        // 8바이트 8픽셀 단위로 템플릿 이미지 로드
+                        __m128i tmpPixel8 = _mm_loadu_si64((__m128i*) & templete[ky * tmpWidth + kx]);
+                        // 로드된 8바이트 8픽셀을 32비트 signed Intager로 변환
+                        __m256i tmpPixel = _mm256_cvtepu8_epi32(tmpPixel8);
+                        // 8개의 픽셀값이 든 레지스터 두개의 각 픽셀의 차이를 계산
+                        __m256i subVal = _mm256_sub_epi32(srcPixel, tmpPixel);
+                        // 픽셀의 차이를 제곱
+                        __m256i mulVal = _mm256_mullo_epi32(subVal, subVal);
+                        // 픽셀의 차이를 sumVal에 누적
+                        sumVal = _mm256_add_epi32(sumVal, mulVal);
+                    }
+                }
+            }
+            // 픽셀값의 차이의 제곱 평균을 구하기
+            difAvg = _mm256_sum_epi32(sumVal);
+            difAvg /= (tmpHeight * (tmpWidth - 8));
+            difAvg = sqrt(difAvg);
+            int Rate = (255 - difAvg) * 100 / 255;
+
+            des[y * srcWidth + x] = (uint8_t)Rate;
+        }
+    }
+
+    // 명암 대비를 위해 평활화 실행
+    SSEEqualization(des, des, srcWidth, srcHeight);
 }
 
 

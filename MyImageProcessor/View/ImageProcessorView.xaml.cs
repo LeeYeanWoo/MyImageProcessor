@@ -84,8 +84,8 @@ namespace MyImageProcessor
                 double yScale = sourceScrollViewer.ViewportHeight / bitmap.PixelHeight;
                 double scale = Math.Min(xScale, yScale);
 
-                sourceScaleTransform.ScaleX = scale;
-                sourceScaleTransform.ScaleY = scale;
+                sourceScaleTransform.ScaleX = scale/2;
+                sourceScaleTransform.ScaleY = scale/2;
             }
         }
         private void AdjustTargetScale()
@@ -265,6 +265,7 @@ namespace MyImageProcessor
         {
             TempleteMatchingPopup templeteMatchingPopup = new();
             templeteMatchingPopup.DataSendEvent += new DataGetEventHandler(this.TempleteMatchingDataGet);
+            templeteMatchingPopup.SimilarityGetEvent += new SimilarityGetEventHandler(this.SimilarityDataGet);
             templeteMatchingPopup.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             templeteMatchingPopup.ShowDialog();
         }
@@ -274,6 +275,13 @@ namespace MyImageProcessor
             string templeteImagePath = dataArr[0];
             int matchingRate = int.Parse(dataArr[1]);
             viewModel.TempleteMaching(templeteImagePath, matchingRate);
+            AdjustSourceScale();
+            AdjustTargetScale();
+        }
+        private void SimilarityDataGet(string path)
+        {
+            string templeteImagePath = path;
+            viewModel.GetSimilarityImage(templeteImagePath);
             AdjustSourceScale();
             AdjustTargetScale();
         }
@@ -307,6 +315,16 @@ namespace MyImageProcessor
         private void ChangeSourceButtonClick(object sender, RoutedEventArgs e)
         {
             viewModel.ChangeSource();
+        }
+
+        private void SourceImageLoad(object sender, RoutedEventArgs e)
+        {
+            AdjustSourceScale();
+        }
+
+        private void TargetImageLoad(object sender, RoutedEventArgs e)
+        {
+            AdjustTargetScale();
         }
     }
 }

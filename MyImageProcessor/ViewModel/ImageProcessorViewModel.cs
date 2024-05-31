@@ -67,7 +67,7 @@ namespace MyImageProcessor.ViewModel
         {
             Bitmap resultBitmap = ImageConverter.BitmapImageToBitmap(TargetImage.Image);
             Bitmap sourceBitmap = new(resultBitmap);
-            sourceBitmap = imageProcessing.GrayScale(sourceBitmap);
+            sourceBitmap = imageProcessing.Cvt32GrayTo8Gray(sourceBitmap);
             SourceImage.Image = ImageConverter.BitmapToBitmapImage(sourceBitmap);
 
             sourceBitmap.Dispose();
@@ -227,6 +227,27 @@ namespace MyImageProcessor.ViewModel
             stopWatch.Reset();
 
             sourceBitmap.Dispose();
+            templeteBitmap.Dispose();
+            resultBitmap.Dispose();
+        }
+
+        public void GetSimilarityImage(string templeteImagePath)
+        {
+            ImageModel templeteImage = new ImageModel();
+            templeteImage.ImageLoad(templeteImagePath);
+
+            Bitmap sourceBitmap = ImageConverter.BitmapImageToBitmap(SourceImage.Image);
+            Bitmap templeteBitmap = ImageConverter.BitmapImageToBitmap(templeteImage.Image);
+            stopWatch.Start();
+            LogManager.WriteLog($"유사도 추출 시작");
+            Bitmap resultBitmap = imageProcessing.GetSimilarity(sourceBitmap, templeteBitmap);
+            TargetImage.Image = ImageConverter.BitmapToBitmapImage(resultBitmap);
+            stopWatch.Stop();
+            LogManager.WriteLog($"유사도 추출 끝 소요시간 : {stopWatch.ElapsedMilliseconds}ms");
+            stopWatch.Reset();
+
+            sourceBitmap.Dispose();
+            templeteBitmap.Dispose();
             resultBitmap.Dispose();
         }
 

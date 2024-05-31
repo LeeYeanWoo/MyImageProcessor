@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MyImageProcessor.View"
         mc:Ignorable="d"
-        Title="TempleteMatchingPopup" Height="200" Width="400">
+        Title="TempleteMatchingPopup" Height="300" Width="400">
     <Grid>
         <StackPanel Margin="10">
             <Label Content="템플릿 이미지를 선택하세요"/>
@@ -14,6 +14,7 @@
                 <TextBox Name="TempleteImagePathTextBox" Width="190"/>
                 <Button Content="찾아보기" Click="TempleteImageLoadButtonClick"/>
             </WrapPanel>
+            <Button Content="유사도 이미지 보기" Width="150" Click="SimilarityButtonClick" Margin="10"/>    
             <Label Content="매칭율을 입력하세요"/>
             <WrapPanel>
                 <Label Content="MatchingRate "/>

@@ -53,6 +53,7 @@
                         <ScrollViewer x:Name="sourceScrollViewer" HorizontalScrollBarVisibility="Visible">
                             <Image x:Name="sourceImage" Stretch="Uniform"
                                    Source="{Binding SourceImage.Image}"
+                                   Loaded="SourceImageLoad"
                                    MouseWheel="SourceImage_MouseWheel">
                                 <Image.LayoutTransform>
                                     <TransformGroup>
@@ -83,6 +84,7 @@
                     <ScrollViewer x:Name="targetScrollViewer" HorizontalScrollBarVisibility="Visible" ScrollChanged="TargetScrollViewer_ScrollChanged">
                         <Image x:Name="targetImage" Stretch="Uniform"
                                Source="{Binding TargetImage.Image}"
+                               Loaded="TargetImageLoad"
                                MouseWheel="TargetImage_MouseWheel">
                             <Image.LayoutTransform>
                                 <TransformGroup>

@@ -10,7 +10,7 @@ namespace CLRImageProcessing {
 	public ref class ImageProcessing
 	{
 	public:
-		Bitmap^ GrayScale(Bitmap^sourceBitmap);
+		Bitmap^ Cvt32GrayTo8Gray(Bitmap^sourceBitmap);
 		Bitmap^ Binarize(Bitmap^sourceBitmap , int threshold);
 		Bitmap^ Erosion(Bitmap^ sourceBitmap, int threshold, int kernelX, int kernelY);
 		Bitmap^ Dilation(Bitmap^ sourceBitmap, int threshold, int kernelX, int kernelY);
@@ -20,6 +20,7 @@ namespace CLRImageProcessing {
 		Bitmap^ Laplacian(Bitmap^ sourceBitmap);
 		Bitmap^ FFTransform(Bitmap^ sourceBitmap, int filterSize, bool lowFilterUse);
 		Bitmap^ GetFFTSpectrum(Bitmap^ sourceBitmap);
+		Bitmap^ GetSimilarity(Bitmap^ sourceBitmap, Bitmap^ templeteBitmap);
 		Point^ TempleteMatching(Bitmap^ sourceBitmap, Bitmap^ templeteBitmap, int matchingRate);
 	};
 }

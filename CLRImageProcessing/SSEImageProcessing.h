@@ -19,4 +19,6 @@ void SSEFFTransform(uint8_t* src, uint8_t* des, int width, int height, int filte
 
 void SSEFFTSpectrum(uint8_t* src, uint8_t* des, int width, int height);
 
+void GetSimilarityImage(uint8_t* src, uint8_t* des, uint8_t* templete, int srcWidth, int srcHeight, int tmpWidth, int tmpHeight);
+
 void SSETempleteMatching(uint8_t* src, uint8_t* templete, int srcWidth, int srcHeight, int tmpWidth, int tmpHeight, int matchingRate ,int& matchPointX, int& matchPointY);

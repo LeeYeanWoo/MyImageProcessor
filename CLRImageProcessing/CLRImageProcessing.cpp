@@ -9,7 +9,7 @@ using namespace CLRImageProcessing;
 
 double* GetGaussianFilter(int sigma);
 
-Bitmap^ CLRImageProcessing::ImageProcessing::GrayScale(Bitmap^ sourceBitmap)
+Bitmap^ CLRImageProcessing::ImageProcessing::Cvt32GrayTo8Gray(Bitmap^ sourceBitmap)
 {
 	Bitmap^ newBitmap = gcnew Bitmap(sourceBitmap->Width, sourceBitmap->Height, Imaging::PixelFormat::Format8bppIndexed);
 
@@ -38,12 +38,8 @@ Bitmap^ CLRImageProcessing::ImageProcessing::GrayScale(Bitmap^ sourceBitmap)
 		for (int x = 0; x < width; x++)
 		{
 			int index32 = y * originalData->Stride + x * bytesPerPixel;
-			byte b = pixelData[index32];
-			byte g = pixelData[index32 + 1];
-			byte r = pixelData[index32 + 2];
+			byte gray = pixelData[index32];
 
-			// 그레이스케일 값 계산
-			byte gray = (byte)(0.3 * r + 0.59 * g + 0.11 * b) * 3;
 			newPixelData[y * newBitmapData->Stride + x] = gray;
 		}
 	}
@@ -295,6 +291,38 @@ Bitmap^ CLRImageProcessing::ImageProcessing::GetFFTSpectrum(Bitmap^ sourceBitmap
 	SSEFFTSpectrum(sPtr, tPtr, sourceBitmap->Width, sourceBitmap->Height);
 	//처리 끝
 	sourceBitmap->UnlockBits(sourceBitmapData);
+	targetBitmap->UnlockBits(targetBitmapData);
+
+	return targetBitmap;
+}
+
+Bitmap^ CLRImageProcessing::ImageProcessing::GetSimilarity(Bitmap^ sourceBitmap, Bitmap^ templeteBitmap)
+{
+	Bitmap^ targetBitmap = gcnew Bitmap(sourceBitmap);
+
+	//기본 Palette가 컬러로 들어가 있기 때문에 Palette를 그레이 스캐일 Palette로 변경
+	ColorPalette^ palette = sourceBitmap->Palette;
+	for (int i = 0; i < 256; i++)
+		palette->Entries[i] = Color::FromArgb(i, i, i);
+	sourceBitmap->Palette = palette;
+	targetBitmap->Palette = palette;
+
+	BitmapData^ sourceBitmapData = sourceBitmap->LockBits(System::Drawing::Rectangle(0, 0, sourceBitmap->Width
+		, sourceBitmap->Height), ImageLockMode::ReadWrite, sourceBitmap->PixelFormat);
+	BitmapData^ templeteBitmapData = templeteBitmap->LockBits(System::Drawing::Rectangle(0, 0, templeteBitmap->Width
+		, templeteBitmap->Height), ImageLockMode::ReadWrite, sourceBitmap->PixelFormat);
+	BitmapData^ targetBitmapData = targetBitmap->LockBits(System::Drawing::Rectangle(0, 0, targetBitmap->Width
+		, targetBitmap->Height), ImageLockMode::ReadWrite, sourceBitmap->PixelFormat);
+
+	byte* sPtr = static_cast<byte*>(sourceBitmapData->Scan0.ToPointer());
+	byte* tPtr = static_cast<byte*>(targetBitmapData->Scan0.ToPointer());
+	byte* templetePtr = static_cast<byte*>(templeteBitmapData->Scan0.ToPointer());
+	//처리 시작
+
+	GetSimilarityImage(sPtr, tPtr, templetePtr, sourceBitmap->Width, sourceBitmap->Height, templeteBitmap->Width, templeteBitmap->Height);
+	//처리 끝
+	sourceBitmap->UnlockBits(sourceBitmapData);
+	templeteBitmap->UnlockBits(templeteBitmapData);
 	targetBitmap->UnlockBits(targetBitmapData);
 
 	return targetBitmap;

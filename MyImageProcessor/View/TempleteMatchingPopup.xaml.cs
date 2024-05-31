@@ -18,9 +18,12 @@ namespace MyImageProcessor.View
     /// <summary>
     /// TampleteMatchingPopup.xaml에 대한 상호 작용 논리
     /// </summary>
+    public delegate void SimilarityGetEventHandler(string path);
+
     public partial class TempleteMatchingPopup : Window
     {
         public DataGetEventHandler DataSendEvent;
+        public SimilarityGetEventHandler SimilarityGetEvent;
         public TempleteMatchingPopup()
         {
             InitializeComponent();
@@ -49,6 +52,16 @@ namespace MyImageProcessor.View
             if(TempleteImagePathTextBox.Text.Length > 0 && matchingRate > 0 && matchingRate <= 100)
             {
                 DataSendEvent($"{TempleteImagePathTextBox.Text},{MatchingRateTextBox.Text}");
+                Close();
+            }
+            else
+                TempleteImagePathTextBox.Text = $"잘못된 입력입니다";
+        }
+        private void SimilarityButtonClick(object sender, RoutedEventArgs e)
+        {
+            if (TempleteImagePathTextBox.Text.Length > 0)
+            {
+                SimilarityGetEvent($"{TempleteImagePathTextBox.Text}");
                 Close();
             }
             else
